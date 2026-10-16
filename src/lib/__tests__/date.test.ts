@@ -4,10 +4,13 @@ import {
   cellKey,
   dayInfo,
   eventColumnRange,
+  formatEndTime,
   formatTimeLabel,
+  formatTimeRange,
   isISODate,
   normalizeTimeInput,
   parseCellKey,
+  parseTimeRange,
   shiftWeek,
   startOfWeekISO,
   weekDates,
@@ -110,5 +113,34 @@ describe('cellKey', () => {
     const key = cellKey('w_1', '2026-10-25');
     expect(key).toBe('w_1|2026-10-25');
     expect(parseCellKey(key)).toEqual({ workerId: 'w_1', date: '2026-10-25' });
+  });
+});
+
+describe('시간 범위', () => {
+  it.each([
+    ['1530~22', { start: '1530', end: '2200' }],
+    ['1530-22', { start: '1530', end: '2200' }],
+    ['15:30 ~ 22:00', { start: '1530', end: '2200' }],
+    ['930-1430', { start: '0930', end: '1430' }],
+    ['1000', { start: '1000' }],
+    ['1000 22', { start: '1000', end: '2200' }],
+  ])('%s 파싱', (input, expected) => {
+    expect(parseTimeRange(input)).toEqual(expected);
+  });
+
+  it('잘못된 범위는 null', () => {
+    expect(parseTimeRange('abc')).toBeNull();
+    expect(parseTimeRange('1000~2500')).toBeNull();
+    expect(parseTimeRange('1~2~3')).toBeNull();
+    expect(parseTimeRange('')).toBeNull();
+  });
+
+  it('표기: 설정 스타일대로, 정각 퇴근은 시만', () => {
+    expect(formatTimeRange('1530', '2200', 'compact')).toBe('1530~22');
+    expect(formatTimeRange('1530', '2130', 'compact')).toBe('1530~2130');
+    expect(formatTimeRange('1530', '2200', 'colon')).toBe('15:30~22:00');
+    expect(formatTimeRange('0930', undefined, 'compact')).toBe('930');
+    expect(formatEndTime('0900', 'compact')).toBe('9');
+    expect(formatEndTime('2200')).toBe('22:00');
   });
 });

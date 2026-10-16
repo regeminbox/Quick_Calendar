@@ -51,12 +51,25 @@ export default function SettingsScreen() {
     try {
       const state = useAppStore.getState();
       await exportBackupFile(
-        serializeBackup({ version: state.version, workers: state.workers, cards: state.cards, events: state.events, cells: state.cells, settings: state.settings }),
+        serializeBackup({
+          version: state.version,
+          workers: state.workers,
+          cards: state.cards,
+          events: state.events,
+          cells: state.cells,
+          settings: state.settings,
+        }),
         backupFileName(),
       );
-      setNotice({ kind: 'ok', text: '백업 파일을 만들었어요. 저장하거나 카톡·드라이브로 보내 두세요.' });
+      setNotice({
+        kind: 'ok',
+        text: '백업 파일을 만들었어요. 저장하거나 카톡·드라이브로 보내 두세요.',
+      });
     } catch (e) {
-      setNotice({ kind: 'error', text: e instanceof Error ? e.message : '백업을 만들지 못했어요.' });
+      setNotice({
+        kind: 'error',
+        text: e instanceof Error ? e.message : '백업을 만들지 못했어요.',
+      });
     } finally {
       setBusy(false);
     }
@@ -80,7 +93,10 @@ export default function SettingsScreen() {
       successHaptic();
       setNotice({ kind: 'ok', text: '백업을 불러왔어요.' });
     } catch (e) {
-      setNotice({ kind: 'error', text: e instanceof Error ? e.message : '백업을 불러오지 못했어요.' });
+      setNotice({
+        kind: 'error',
+        text: e instanceof Error ? e.message : '백업을 불러오지 못했어요.',
+      });
     } finally {
       setBusy(false);
     }
@@ -88,7 +104,11 @@ export default function SettingsScreen() {
 
   const onSeed = async () => {
     if (workerCount > 0) {
-      const ok = await confirmAsync('예시 데이터로 바꿀까요?', '지금 근무자와 근무표가 예시로 바뀌어요.', '바꾸기');
+      const ok = await confirmAsync(
+        '예시 데이터로 바꿀까요?',
+        '지금 근무자와 근무표가 예시로 바뀌어요.',
+        '바꾸기',
+      );
       if (!ok) return;
     }
     seedSample();
@@ -96,7 +116,10 @@ export default function SettingsScreen() {
   };
 
   const onReset = async () => {
-    const ok = await confirmAsync('모든 데이터를 지울까요?', '근무자·근무표·카드·행사가 모두 사라져요. 되돌릴 수 없어요.');
+    const ok = await confirmAsync(
+      '모든 데이터를 지울까요?',
+      '근무자·근무표·카드·행사가 모두 사라져요. 되돌릴 수 없어요.',
+    );
     if (!ok) return;
     resetAll();
     setStoreName(useAppStore.getState().settings.storeName);
@@ -123,7 +146,11 @@ export default function SettingsScreen() {
         </Section>
 
         <Section title="시간 표기">
-          <SegmentedControl options={TIME_STYLE_OPTIONS} value={settings.timeStyle} onChange={(v: TimeStyle) => updateSettings({ timeStyle: v })} />
+          <SegmentedControl
+            options={TIME_STYLE_OPTIONS}
+            value={settings.timeStyle}
+            onChange={(v: TimeStyle) => updateSettings({ timeStyle: v })}
+          />
           <AppText variant="caption" color={colors.text.secondary}>
             근무표와 공유 이미지에 같이 적용돼요.
           </AppText>
@@ -134,21 +161,40 @@ export default function SettingsScreen() {
             데이터는 이 폰에만 저장돼요. 폰을 바꾸거나 앱을 지우기 전에 백업 파일을 만들어 두세요.
           </AppText>
           <View style={styles.buttonRow}>
-            <Button title="백업 파일 내보내기" variant="primary" onPress={onExport} disabled={busy} style={styles.flex} />
-            <Button title="가져오기" variant="secondary" onPress={onImport} disabled={busy} style={styles.flex} />
+            <Button
+              title="백업 파일 내보내기"
+              variant="primary"
+              onPress={onExport}
+              disabled={busy}
+              style={styles.flex}
+            />
+            <Button
+              title="가져오기"
+              variant="secondary"
+              onPress={onImport}
+              disabled={busy}
+              style={styles.flex}
+            />
           </View>
         </Section>
 
         <Section title="데이터">
           <View style={styles.buttonRow}>
-            <Button title="예시 데이터 넣기" variant="secondary" onPress={onSeed} style={styles.flex} />
+            <Button
+              title="예시 데이터 넣기"
+              variant="secondary"
+              onPress={onSeed}
+              style={styles.flex}
+            />
             <Button title="모두 지우기" variant="danger" onPress={onReset} style={styles.flex} />
           </View>
         </Section>
 
         {notice ? (
           <View style={[styles.notice, notice.kind === 'error' && styles.noticeError]}>
-            <AppText variant="caption" color={notice.kind === 'error' ? colors.feedback.danger : colors.text.primary}>
+            <AppText
+              variant="caption"
+              color={notice.kind === 'error' ? colors.feedback.danger : colors.text.primary}>
               {notice.text}
             </AppText>
           </View>
@@ -175,10 +221,21 @@ const styles = StyleSheet.create({
   safe: { flex: 1, backgroundColor: colors.surface.bg },
   content: { padding: spacing.lg, gap: spacing.lg, paddingBottom: spacing.xxl },
   section: { gap: spacing.sm },
-  card: { backgroundColor: colors.surface.card, borderRadius: radius.md, borderWidth: 1, borderColor: colors.surface.border, padding: spacing.lg, gap: spacing.md },
+  card: {
+    backgroundColor: colors.surface.card,
+    borderRadius: radius.md,
+    borderWidth: 1,
+    borderColor: colors.surface.border,
+    padding: spacing.lg,
+    gap: spacing.md,
+  },
   buttonRow: { flexDirection: 'row', gap: spacing.sm },
   flex: { flex: 1 },
-  notice: { backgroundColor: colors.brand.yellowPale, borderRadius: radius.md, padding: spacing.md },
-  noticeError: { backgroundColor: '#FDE2E2' },
+  notice: {
+    backgroundColor: colors.brand.primaryPale,
+    borderRadius: radius.md,
+    padding: spacing.md,
+  },
+  noticeError: { backgroundColor: colors.feedback.dangerSoft },
   version: { textAlign: 'center', marginTop: spacing.md },
 });

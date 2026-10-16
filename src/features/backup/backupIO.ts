@@ -13,8 +13,13 @@ export async function exportBackupFile(json: string, fileName: string): Promise<
   if (file.exists) file.delete();
   file.create();
   await file.write(json);
-  if (!(await Sharing.isAvailableAsync())) throw new Error('이 기기에서는 공유를 사용할 수 없어요.');
-  await Sharing.shareAsync(file.uri, { mimeType: 'application/json', dialogTitle: '백업 파일 저장 / 공유', UTI: 'public.json' });
+  if (!(await Sharing.isAvailableAsync()))
+    throw new Error('이 기기에서는 공유를 사용할 수 없어요.');
+  await Sharing.shareAsync(file.uri, {
+    mimeType: 'application/json',
+    dialogTitle: '백업 파일 저장 / 공유',
+    UTI: 'public.json',
+  });
 }
 
 /** 파일 선택기에서 백업 파일을 골라 텍스트로 읽는다. 취소하면 null */
@@ -35,12 +40,15 @@ export async function pickBackupText(): Promise<string | null> {
 interface WebGlobals {
   Blob?: new (parts: string[], options: { type: string }) => unknown;
   URL?: { createObjectURL: (blob: unknown) => string; revokeObjectURL: (url: string) => void };
-  document?: { createElement: (tag: string) => { href: string; download: string; click: () => void } };
+  document?: {
+    createElement: (tag: string) => { href: string; download: string; click: () => void };
+  };
 }
 
 function webDownload(text: string, fileName: string) {
   const g = globalThis as unknown as WebGlobals;
-  if (!g.Blob || !g.URL || !g.document) throw new Error('이 브라우저에서는 파일 저장을 지원하지 않아요.');
+  if (!g.Blob || !g.URL || !g.document)
+    throw new Error('이 브라우저에서는 파일 저장을 지원하지 않아요.');
   const url = g.URL.createObjectURL(new g.Blob([text], { type: 'application/json' }));
   const anchor = g.document.createElement('a');
   anchor.href = url;

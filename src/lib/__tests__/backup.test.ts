@@ -26,10 +26,16 @@ describe('backup', () => {
   it('잘못된 입력은 한국어 메시지로 거부', () => {
     expect(() => parseBackup('not json')).toThrow('JSON 파일이 아니에요.');
     expect(() => parseBackup('{"hello":1}')).toThrow('퀵캘린더 백업 파일이 아니에요.');
-    expect(() => parseBackup(JSON.stringify({ app: 'quickcalendar', data: { version: 99, workers: [], cells: {} } }))).toThrow('더 새로운 버전');
+    expect(() =>
+      parseBackup(
+        JSON.stringify({ app: 'quickcalendar', data: { version: 99, workers: [], cells: {} } }),
+      ),
+    ).toThrow('더 새로운 버전');
   });
 
   it('파일 이름에 날짜·시각', () => {
-    expect(backupFileName(new Date(2026, 9, 16, 9, 5))).toBe('quickcalendar-backup-20261016-0905.json');
+    expect(backupFileName(new Date(2026, 9, 16, 9, 5))).toBe(
+      'quickcalendar-backup-20261016-0905.json',
+    );
   });
 });

@@ -18,7 +18,11 @@ export function TextField({ label, error, hint, style, ...rest }: TextFieldProps
           {label}
         </AppText>
       ) : null}
-      <TextInput placeholderTextColor={colors.text.tertiary} {...rest} style={[styles.input, !!error && styles.inputError, style]} />
+      <TextInput
+        placeholderTextColor={colors.text.tertiary}
+        {...rest}
+        style={[styles.input, !!error && styles.inputError, style]}
+      />
       {error ? (
         <AppText variant="caption" color={colors.feedback.danger}>
           {error}

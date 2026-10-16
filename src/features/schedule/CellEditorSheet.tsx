@@ -7,7 +7,7 @@ import { Button } from '@/components/ui/Button';
 import { Chip } from '@/components/ui/Chip';
 import { Sheet } from '@/components/ui/Sheet';
 import { TextField } from '@/components/ui/TextField';
-import { cellKey, dateLabel, formatTimeLabel, type ISODate, normalizeTimeInput } from '@/lib/date';
+import { cellKey, dateLabel, formatTimeRange, type ISODate, parseTimeRange } from '@/lib/date';
 import { tapHaptic } from '@/lib/haptics';
 import { useSettings, useStatusCards, useTimeCards } from '@/store/selectors';
 import type { Card } from '@/store/types';
@@ -31,8 +31,12 @@ export interface CellEditorSheetProps {
 /** 셀을 누르면 올라오는 선택 시트: 출근 시간 칩 / 직접 입력 / 상태·커스텀 카드 / 지우기 */
 export function CellEditorSheet({ target, onClose, onRequestNewCard }: CellEditorSheetProps) {
   const { timeStyle } = useSettings();
-  const workerName = useAppStore((s) => (target ? s.workers.find((w) => w.id === target.workerId)?.name : undefined));
-  const value = useAppStore((s) => (target ? s.cells[cellKey(target.workerId, target.date)] : undefined));
+  const workerName = useAppStore((s) =>
+    target ? s.workers.find((w) => w.id === target.workerId)?.name : undefined,
+  );
+  const value = useAppStore((s) =>
+    target ? s.cells[cellKey(target.workerId, target.date)] : undefined,
+  );
   const clearCell = useAppStore((s) => s.clearCell);
 
   const title = target ? `${workerName ?? ''} · ${dateLabel(target.date)}` : '';
@@ -65,13 +69,26 @@ export function CellEditorSheet({ target, onClose, onRequestNewCard }: CellEdito
         </>
       }>
       {target ? (
-        <CellEditor key={`${target.workerId}|${target.date}`} target={target} onClose={onClose} onRequestNewCard={onRequestNewCard} />
+        <CellEditor
+          key={`${target.workerId}|${target.date}`}
+          target={target}
+          onClose={onClose}
+          onRequestNewCard={onRequestNewCard}
+        />
       ) : null}
     </Sheet>
   );
 }
 
-function CellEditor({ target, onClose, onRequestNewCard }: { target: CellTarget; onClose: () => void; onRequestNewCard: () => void }) {
+function CellEditor({
+  target,
+  onClose,
+  onRequestNewCard,
+}: {
+  target: CellTarget;
+  onClose: () => void;
+  onRequestNewCard: () => void;
+}) {
   const timeCards = useTimeCards();
   const statusCards = useStatusCards();
   const { timeStyle } = useSettings();
@@ -82,7 +99,8 @@ function CellEditor({ target, onClose, onRequestNewCard }: { target: CellTarget;
   const [error, setError] = useState<string | null>(null);
 
   const selectedId = value?.cardId ?? null;
-  const customTime = value && value.cardId === null && value.kind === 'time' ? value.time : undefined;
+  const customTime =
+    value && value.cardId === null && value.kind === 'time' ? value.time : undefined;
 
   const applyCard = (card: Card) => {
     setCellCard(target.workerId, target.date, card);
@@ -91,14 +109,20 @@ function CellEditor({ target, onClose, onRequestNewCard }: { target: CellTarget;
   };
 
   const applyCustom = () => {
-    const time = normalizeTimeInput(custom);
-    if (!time) {
-      setError('예: 930, 1000, 15:30 처럼 입력해 주세요');
+    const range = parseTimeRange(custom);
+    if (!range) {
+      setError('예: 930, 1000, 1530~22 처럼 입력해 주세요');
       return;
     }
-    setCellTime(target.workerId, target.date, time);
+    setCellTime(target.workerId, target.date, range.start, range.end);
     tapHaptic();
     onClose();
+  };
+
+  /** 숫자 키패드에서 ~를 치기 어려우니 버튼으로 붙여 준다 */
+  const insertTilde = () => {
+    setCustom((c) => (c.includes('~') ? c : `${c.trim()}~`));
+    setError(null);
   };
 
   return (
@@ -111,14 +135,19 @@ function CellEditor({ target, onClose, onRequestNewCard }: { target: CellTarget;
           {timeCards.map((card) => (
             <Chip
               key={card.id}
-              label={formatTimeLabel(card.time ?? card.label, timeStyle)}
+              label={formatTimeRange(card.time ?? card.label, card.endTime, timeStyle)}
               bg={card.bg}
               fg={card.fg}
               selected={card.id === selectedId}
               onPress={() => applyCard(card)}
             />
           ))}
-          {customTime ? <Chip label={`직접 ${formatTimeLabel(customTime, timeStyle)}`} selected /> : null}
+          {customTime ? (
+            <Chip
+              label={`직접 ${formatTimeRange(customTime, value?.endTime, timeStyle)}`}
+              selected
+            />
+          ) : null}
         </View>
         <View style={styles.customRow}>
           <View style={styles.customField}>
@@ -128,14 +157,29 @@ function CellEditor({ target, onClose, onRequestNewCard }: { target: CellTarget;
                 setCustom(text);
                 setError(null);
               }}
-              placeholder="직접 입력 (예: 930, 1130)"
-              keyboardType="number-pad"
+              placeholder="직접 입력 (예: 930, 1530~22)"
+              keyboardType="numbers-and-punctuation"
+              hint="퇴근 시각까지 넣으려면 1530~22 처럼 ~로 이어 주세요"
               returnKeyType="done"
               onSubmitEditing={applyCustom}
               error={error}
             />
           </View>
-          <Button title="적용" variant="secondary" onPress={applyCustom} disabled={!custom.trim()} style={styles.customButton} />
+          <Button
+            title="~"
+            variant="secondary"
+            accessibilityLabel="퇴근 시각 이어 쓰기"
+            onPress={insertTilde}
+            disabled={!custom.trim() || custom.includes('~')}
+            style={styles.customButton}
+          />
+          <Button
+            title="적용"
+            variant="secondary"
+            onPress={applyCustom}
+            disabled={!custom.trim()}
+            style={styles.customButton}
+          />
         </View>
       </View>
 
@@ -145,7 +189,14 @@ function CellEditor({ target, onClose, onRequestNewCard }: { target: CellTarget;
         </AppText>
         <View style={styles.chips}>
           {statusCards.map((card) => (
-            <Chip key={card.id} label={card.label} bg={card.bg} fg={card.fg} selected={card.id === selectedId} onPress={() => applyCard(card)} />
+            <Chip
+              key={card.id}
+              label={card.label}
+              bg={card.bg}
+              fg={card.fg}
+              selected={card.id === selectedId}
+              onPress={() => applyCard(card)}
+            />
           ))}
           <Chip label="새 카드" dashed icon={<PlusIcon size={14} />} onPress={onRequestNewCard} />
         </View>

@@ -1,5 +1,13 @@
 import type { ReactNode } from 'react';
-import { KeyboardAvoidingView, Modal, Platform, Pressable, ScrollView, StyleSheet, View } from 'react-native';
+import {
+  KeyboardAvoidingView,
+  Modal,
+  Platform,
+  Pressable,
+  ScrollView,
+  StyleSheet,
+  View,
+} from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { colors, radius, spacing } from '@/theme/tokens';
@@ -19,8 +27,15 @@ export interface SheetProps {
 export function Sheet({ visible, onClose, title, subtitle, children, footer }: SheetProps) {
   const insets = useSafeAreaInsets();
   return (
-    <Modal visible={visible} transparent animationType="slide" onRequestClose={onClose} statusBarTranslucent>
-      <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : undefined} style={styles.fill}>
+    <Modal
+      visible={visible}
+      transparent
+      animationType="slide"
+      onRequestClose={onClose}
+      statusBarTranslucent>
+      <KeyboardAvoidingView
+        behavior={Platform.OS === 'ios' ? 'padding' : undefined}
+        style={styles.fill}>
         <Pressable style={styles.backdrop} onPress={onClose} accessibilityLabel="닫기" />
         <View style={[styles.sheet, { paddingBottom: Math.max(insets.bottom, spacing.md) }]}>
           <View style={styles.handle} />
@@ -50,7 +65,14 @@ export function Sheet({ visible, onClose, title, subtitle, children, footer }: S
 
 const styles = StyleSheet.create({
   fill: { flex: 1, justifyContent: 'flex-end' },
-  backdrop: { position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, backgroundColor: colors.surface.overlay },
+  backdrop: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    backgroundColor: colors.surface.overlay,
+  },
   sheet: {
     backgroundColor: colors.surface.card,
     borderTopLeftRadius: radius.lg,
@@ -59,7 +81,14 @@ const styles = StyleSheet.create({
     paddingTop: spacing.sm,
     maxHeight: '88%',
   },
-  handle: { width: 40, height: 4, borderRadius: 2, backgroundColor: colors.surface.border, alignSelf: 'center', marginBottom: spacing.sm },
+  handle: {
+    width: 40,
+    height: 4,
+    borderRadius: 2,
+    backgroundColor: colors.surface.border,
+    alignSelf: 'center',
+    marginBottom: spacing.sm,
+  },
   titleBlock: { gap: 2, marginBottom: spacing.md },
   scroll: { flexGrow: 0 },
   content: { gap: spacing.lg, paddingBottom: spacing.sm },

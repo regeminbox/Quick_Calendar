@@ -1,4 +1,5 @@
 import { Pressable, StyleSheet, View } from 'react-native';
+import Animated, { FadeInDown } from 'react-native-reanimated';
 
 import { SparkleIcon } from '@/components/icons';
 import { AppText } from '@/components/ui/AppText';
@@ -18,11 +19,21 @@ export interface EventBandsProps {
 }
 
 /** 날짜 헤더 위, 행사 기간에 해당하는 열만 노란 띠로 덮는다 (예: 고래잇 행사 3일~6일) */
-export function EventBands({ items, laneCount, metrics, onPressEvent, compact = false }: EventBandsProps) {
+export function EventBands({
+  items,
+  laneCount,
+  metrics,
+  onPressEvent,
+  compact = false,
+}: EventBandsProps) {
   if (laneCount === 0) return null;
   const laneHeight = metrics.bandHeight + grid.gap;
   return (
-    <View style={[styles.wrap, { height: laneCount * laneHeight + grid.gap, width: metrics.tableWidth }]}>
+    <View
+      style={[
+        styles.wrap,
+        { height: laneCount * laneHeight + grid.gap, width: metrics.tableWidth },
+      ]}>
       {items.map(({ event, from, to, lane }) => {
         const left = metrics.nameColWidth + from * metrics.dayColWidth + grid.gap;
         const width = (to - from + 1) * metrics.dayColWidth - grid.gap * 2;
@@ -36,15 +47,21 @@ export function EventBands({ items, laneCount, metrics, onPressEvent, compact = 
           </View>
         );
         return (
-          <View key={event.id} style={{ position: 'absolute', left, top, width }}>
+          <Animated.View
+            key={event.id}
+            entering={FadeInDown.duration(220)}
+            style={{ position: 'absolute', left, top, width }}>
             {compact || !onPressEvent ? (
               band
             ) : (
-              <Pressable onPress={() => onPressEvent(event)} accessibilityRole="button" accessibilityLabel={`${event.title} 수정`}>
+              <Pressable
+                onPress={() => onPressEvent(event)}
+                accessibilityRole="button"
+                accessibilityLabel={`${event.title} 수정`}>
                 {({ pressed }) => <View style={{ opacity: pressed ? 0.7 : 1 }}>{band}</View>}
               </Pressable>
             )}
-          </View>
+          </Animated.View>
         );
       })}
     </View>

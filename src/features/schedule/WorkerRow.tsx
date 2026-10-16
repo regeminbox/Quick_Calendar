@@ -18,7 +18,15 @@ export interface WorkerRowProps {
   onPressCell?: (workerId: string, date: ISODate) => void;
 }
 
-export function WorkerRow({ worker, dates, cells, today, timeStyle, metrics, onPressCell }: WorkerRowProps) {
+export function WorkerRow({
+  worker,
+  dates,
+  cells,
+  today,
+  timeStyle,
+  metrics,
+  onPressCell,
+}: WorkerRowProps) {
   return (
     <View style={styles.row}>
       <View style={[styles.nameCell, { width: metrics.nameColWidth, height: metrics.rowHeight }]}>

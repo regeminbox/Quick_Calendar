@@ -17,7 +17,8 @@ import { colors, spacing } from '@/theme/tokens';
 
 import { DateRangePicker, type DateRange } from './DateRangePicker';
 
-export type EventSheetState = { mode: 'new'; weekStart: ISODate } | { mode: 'edit'; event: CalendarEvent } | null;
+export type EventSheetState =
+  { mode: 'new'; weekStart: ISODate } | { mode: 'edit'; event: CalendarEvent } | null;
 
 export interface EventSheetProps {
   state: EventSheetState;
@@ -25,19 +26,31 @@ export interface EventSheetProps {
 }
 
 const TITLE_PRESETS = [GORAEIT_EVENT_TITLE, '고래잇 페스타', '재고조사'];
+/** 띠 색 — 파스텔 톤 (글자는 항상 진한 색) */
 const COLORS = [
   { key: 'yellow', name: '노랑', value: EVENT_DEFAULT_COLOR },
-  { key: 'orange', name: '주황', value: '#FFD9A8' },
-  { key: 'mint', name: '민트', value: '#CFEFE1' },
-  { key: 'sky', name: '하늘', value: '#DDEBFF' },
-  { key: 'pink', name: '분홍', value: '#FDE2E2' },
+  { key: 'peach', name: '살구', value: '#FFDFBF' },
+  { key: 'green', name: '연두', value: '#DDF2BF' },
+  { key: 'sky', name: '하늘', value: '#CFE4FF' },
+  { key: 'pink', name: '분홍', value: '#FBD6EA' },
+  { key: 'lavender', name: '라벤더', value: '#E2D6FB' },
 ];
 
 /** 날짜 헤더 위 띠(행사) 추가/수정 — 제목·기간·색·★ */
 export function EventSheet({ state, onClose }: EventSheetProps) {
   return (
-    <Sheet visible={!!state} onClose={onClose} title={state?.mode === 'edit' ? '행사 수정' : '행사 추가'} subtitle="근무표 날짜 위에 띠로 표시돼요">
-      {state ? <EventForm key={state.mode === 'edit' ? state.event.id : `new-${state.weekStart}`} state={state} onClose={onClose} /> : null}
+    <Sheet
+      visible={!!state}
+      onClose={onClose}
+      title={state?.mode === 'edit' ? '행사 수정' : '행사 추가'}
+      subtitle="근무표 날짜 위에 띠로 표시돼요">
+      {state ? (
+        <EventForm
+          key={state.mode === 'edit' ? state.event.id : `new-${state.weekStart}`}
+          state={state}
+          onClose={onClose}
+        />
+      ) : null}
     </Sheet>
   );
 }
@@ -50,21 +63,42 @@ function defaultRange(weekStart: ISODate): DateRange {
 }
 
 function dayCount(range: DateRange): number {
-  return Math.round((fromISODate(range.end).getTime() - fromISODate(range.start).getTime()) / 86_400_000) + 1;
+  return (
+    Math.round(
+      (fromISODate(range.end).getTime() - fromISODate(range.start).getTime()) / 86_400_000,
+    ) + 1
+  );
 }
 
-function EventForm({ state, onClose }: { state: NonNullable<EventSheetState>; onClose: () => void }) {
+function EventForm({
+  state,
+  onClose,
+}: {
+  state: NonNullable<EventSheetState>;
+  onClose: () => void;
+}) {
   const upsertEvent = useAppStore((s) => s.upsertEvent);
   const deleteEvent = useAppStore((s) => s.deleteEvent);
   const event = state.mode === 'edit' ? state.event : null;
 
   const [title, setTitle] = useState(event?.title ?? GORAEIT_EVENT_TITLE);
-  const [range, setRange] = useState<DateRange>(event ? { start: event.start, end: event.end } : defaultRange(state.mode === 'new' ? state.weekStart : todayISO()));
+  const [range, setRange] = useState<DateRange>(
+    event
+      ? { start: event.start, end: event.end }
+      : defaultRange(state.mode === 'new' ? state.weekStart : todayISO()),
+  );
   const [color, setColor] = useState(event?.color ?? EVENT_DEFAULT_COLOR);
   const [star, setStar] = useState(event ? event.icon === 'star' : true);
 
   const save = () => {
-    upsertEvent({ id: event?.id, title, start: range.start, end: range.end, color, icon: star ? 'star' : 'none' });
+    upsertEvent({
+      id: event?.id,
+      title,
+      start: range.start,
+      end: range.end,
+      color,
+      icon: star ? 'star' : 'none',
+    });
     successHaptic();
     onClose();
   };
@@ -80,10 +114,23 @@ function EventForm({ state, onClose }: { state: NonNullable<EventSheetState>; on
   return (
     <>
       <View style={styles.section}>
-        <TextField label="행사 이름" value={title} onChangeText={setTitle} placeholder={GORAEIT_EVENT_TITLE} maxLength={12} returnKeyType="done" />
+        <TextField
+          label="행사 이름"
+          value={title}
+          onChangeText={setTitle}
+          placeholder={GORAEIT_EVENT_TITLE}
+          maxLength={12}
+          returnKeyType="done"
+        />
         <View style={styles.chips}>
           {TITLE_PRESETS.map((preset) => (
-            <Chip key={preset} label={preset} size="sm" selected={title === preset} onPress={() => setTitle(preset)} />
+            <Chip
+              key={preset}
+              label={preset}
+              size="sm"
+              selected={title === preset}
+              onPress={() => setTitle(preset)}
+            />
           ))}
         </View>
       </View>
@@ -94,7 +141,10 @@ function EventForm({ state, onClose }: { state: NonNullable<EventSheetState>; on
             기간
           </AppText>
           <AppText style={styles.rangeText}>
-            {range.start === range.end ? dateLabel(range.start) : `${dateLabel(range.start)} ~ ${dateLabel(range.end)}`} · {dayCount(range)}일
+            {range.start === range.end
+              ? dateLabel(range.start)
+              : `${dateLabel(range.start)} ~ ${dateLabel(range.end)}`}{' '}
+            · {dayCount(range)}일
           </AppText>
         </View>
         <DateRangePicker value={range} onChange={setRange} />
@@ -112,7 +162,13 @@ function EventForm({ state, onClose }: { state: NonNullable<EventSheetState>; on
               accessibilityRole="button"
               accessibilityLabel={c.name}
               accessibilityState={{ selected: color === c.value }}
-              style={[styles.swatch, { backgroundColor: c.value, borderColor: color === c.value ? colors.text.primary : colors.surface.border }]}
+              style={[
+                styles.swatch,
+                {
+                  backgroundColor: c.value,
+                  borderColor: color === c.value ? colors.text.primary : colors.surface.border,
+                },
+              ]}
             />
           ))}
         </View>
@@ -123,7 +179,12 @@ function EventForm({ state, onClose }: { state: NonNullable<EventSheetState>; on
           <SparkleIcon size={16} />
           <AppText>반짝이 아이콘 표시</AppText>
         </View>
-        <Switch value={star} onValueChange={setStar} trackColor={{ true: colors.brand.yellow, false: colors.surface.border }} thumbColor={colors.surface.card} />
+        <Switch
+          value={star}
+          onValueChange={setStar}
+          trackColor={{ true: colors.brand.primary, false: colors.surface.border }}
+          thumbColor={colors.surface.card}
+        />
       </View>
 
       <View style={styles.buttons}>

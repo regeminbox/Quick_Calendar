@@ -17,7 +17,12 @@ export function backupFileName(now: Date = new Date()): string {
 }
 
 export function serializeBackup(state: PersistedState, now: Date = new Date()): string {
-  const file: BackupFile = { app: BACKUP_APP_ID, version: SCHEMA_VERSION, exportedAt: now.toISOString(), data: state };
+  const file: BackupFile = {
+    app: BACKUP_APP_ID,
+    version: SCHEMA_VERSION,
+    exportedAt: now.toISOString(),
+    data: state,
+  };
   return JSON.stringify(file, null, 2);
 }
 
@@ -31,7 +36,10 @@ export function parseBackup(json: string): PersistedState {
   }
   if (!parsed || typeof parsed !== 'object') throw new Error('백업 파일 형식이 아니에요.');
   const obj = parsed as Partial<BackupFile> & Partial<PersistedState>;
-  const data = obj.app === BACKUP_APP_ID && obj.data && typeof obj.data === 'object' ? obj.data : (obj as Partial<PersistedState>);
+  const data =
+    obj.app === BACKUP_APP_ID && obj.data && typeof obj.data === 'object'
+      ? obj.data
+      : (obj as Partial<PersistedState>);
   if (!Array.isArray(data.workers) || !data.cells || typeof data.cells !== 'object') {
     throw new Error('퀵캘린더 백업 파일이 아니에요.');
   }

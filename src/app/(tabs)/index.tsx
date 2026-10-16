@@ -11,14 +11,20 @@ import { WeekActionsSheet } from '@/features/schedule/WeekActionsSheet';
 import { WeekGrid } from '@/features/schedule/WeekGrid';
 import { WeekHeader } from '@/features/schedule/WeekHeader';
 import { useGridMetrics } from '@/features/schedule/useGridMetrics';
-import { cellKey, type ISODate, shiftWeek, todayISO, weekDates } from '@/lib/date';
+import { cellKey, type ISODate, todayISO, weekDates } from '@/lib/date';
+import { tapHaptic } from '@/lib/haptics';
 import { useActiveWorkers, useCells, useEvents, useSettings } from '@/store/selectors';
 import type { CalendarEvent, Card } from '@/store/types';
 import { currentWeekStart, useAppStore } from '@/store/useAppStore';
+import { useWeekView } from '@/store/useWeekView';
 import { colors, spacing } from '@/theme/tokens';
 
 export default function ScheduleScreen() {
-  const [weekStart, setWeekStart] = useState(currentWeekStart);
+  // 보고 있는 주는 캘린더 페이지와 공유하므로 작은 스토어에 둔다
+  const weekStart = useWeekView((s) => s.start);
+  const weekDir = useWeekView((s) => s.dir);
+  const shiftWeekView = useWeekView((s) => s.shift);
+  const goTodayWeek = useWeekView((s) => s.today);
   const today = useMemo(() => todayISO(), []);
   const metrics = useGridMetrics();
 
@@ -43,12 +49,31 @@ export default function ScheduleScreen() {
     return n;
   }, [cells, workers, weekStart]);
 
-  const goPrev = useCallback(() => setWeekStart((w) => shiftWeek(w, -1)), []);
-  const goNext = useCallback(() => setWeekStart((w) => shiftWeek(w, 1)), []);
-  const goToday = useCallback(() => setWeekStart(currentWeekStart()), []);
+  const goPrev = useCallback(() => {
+    tapHaptic();
+    shiftWeekView(-1);
+  }, [shiftWeekView]);
+  const goNext = useCallback(() => {
+    tapHaptic();
+    shiftWeekView(1);
+  }, [shiftWeekView]);
+  const goToday = useCallback(() => {
+    tapHaptic();
+    goTodayWeek();
+  }, [goTodayWeek]);
+  const openCalendar = useCallback(() => {
+    tapHaptic();
+    router.push('/calendar');
+  }, []);
 
-  const onPressCell = useCallback((workerId: string, date: ISODate) => setEditing({ workerId, date }), []);
-  const onPressEvent = useCallback((event: CalendarEvent) => setEventSheet({ mode: 'edit', event }), []);
+  const onPressCell = useCallback(
+    (workerId: string, date: ISODate) => setEditing({ workerId, date }),
+    [],
+  );
+  const onPressEvent = useCallback(
+    (event: CalendarEvent) => setEventSheet({ mode: 'edit', event }),
+    [],
+  );
 
   const requestNewCard = useCallback(() => {
     pendingCell.current = editing;
@@ -74,9 +99,14 @@ export default function ScheduleScreen() {
         onPrev={goPrev}
         onNext={goNext}
         onToday={goToday}
+        onPressTitle={openCalendar}
         onAddEvent={() => setEventSheet({ mode: 'new', weekStart })}
         onMore={workers.length > 0 ? () => setWeekActions(true) : undefined}
-        onShare={workers.length > 0 ? () => router.push({ pathname: '/share', params: { week: weekStart } }) : undefined}
+        onShare={
+          workers.length > 0
+            ? () => router.push({ pathname: '/share', params: { week: weekStart } })
+            : undefined
+        }
       />
       <View style={styles.gridWrap}>
         <WeekGrid
@@ -87,16 +117,29 @@ export default function ScheduleScreen() {
           events={events}
           timeStyle={settings.timeStyle}
           metrics={metrics}
+          transition={weekDir}
           onPressCell={onPressCell}
           onPressEvent={onPressEvent}
           emptyContent={
-            <EmptyState onAddWorker={() => router.push({ pathname: '/manage', params: { add: '1' } })} onSeedSample={seedSample} />
+            <EmptyState
+              onAddWorker={() => router.push({ pathname: '/manage', params: { add: '1' } })}
+              onSeedSample={seedSample}
+            />
           }
         />
       </View>
-      <WeekActionsSheet visible={weekActions} weekStart={weekStart} filledCount={filledCount} onClose={() => setWeekActions(false)} />
+      <WeekActionsSheet
+        visible={weekActions}
+        weekStart={weekStart}
+        filledCount={filledCount}
+        onClose={() => setWeekActions(false)}
+      />
       <EventSheet state={eventSheet} onClose={() => setEventSheet(null)} />
-      <CellEditorSheet target={editing} onClose={() => setEditing(null)} onRequestNewCard={requestNewCard} />
+      <CellEditorSheet
+        target={editing}
+        onClose={() => setEditing(null)}
+        onRequestNewCard={requestNewCard}
+      />
       <CardEditorModal
         state={cardEditor}
         onClose={() => {
@@ -111,5 +154,10 @@ export default function ScheduleScreen() {
 
 const styles = StyleSheet.create({
   safe: { flex: 1, backgroundColor: colors.surface.bg },
-  gridWrap: { flex: 1, paddingHorizontal: spacing.md, paddingTop: spacing.sm, paddingBottom: spacing.md },
+  gridWrap: {
+    flex: 1,
+    paddingHorizontal: spacing.md,
+    paddingTop: spacing.sm,
+    paddingBottom: spacing.md,
+  },
 });

@@ -15,8 +15,10 @@ export interface Card {
   kind: CardKind;
   /** 상태 카드의 표시 글자 (≤4자 권장). 시간 카드는 time에서 파생 */
   label: string;
-  /** kind === 'time' 일 때 'HHmm' */
+  /** kind === 'time' 일 때 출근 'HHmm' */
   time?: string;
+  /** 퇴근 'HHmm' (범위 카드, 예: 1530~22) */
+  endTime?: string;
   bg: string;
   fg: string;
   order: number;
@@ -29,6 +31,7 @@ export interface CellValue {
   kind: CardKind;
   label: string;
   time?: string;
+  endTime?: string;
   bg: string;
   fg: string;
 }
@@ -46,6 +49,8 @@ export interface CalendarEvent {
 export interface Settings {
   storeName: string;
   timeStyle: TimeStyle;
+  /** 첫 실행 안내를 마쳤는지 */
+  onboarded: boolean;
 }
 
 export const SCHEMA_VERSION = 1 as const;

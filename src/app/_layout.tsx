@@ -30,9 +30,15 @@ export default function RootLayout() {
   return (
     <GestureHandlerRootView style={styles.root}>
       <StatusBar style="dark" />
-      <Stack screenOptions={{ headerShown: false, contentStyle: { backgroundColor: colors.surface.bg } }}>
+      <Stack
+        screenOptions={{
+          headerShown: false,
+          contentStyle: { backgroundColor: colors.surface.bg },
+        }}>
         <Stack.Screen name="(tabs)" />
+        <Stack.Screen name="onboarding" options={{ animation: 'fade' }} />
         <Stack.Screen name="share" options={{ presentation: 'modal' }} />
+        <Stack.Screen name="calendar" options={{ presentation: 'modal' }} />
       </Stack>
       {!ready ? <AppLoader /> : null}
     </GestureHandlerRootView>

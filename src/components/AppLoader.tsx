@@ -30,7 +30,15 @@ export function AppLoader() {
 }
 
 const styles = StyleSheet.create({
-  overlay: { position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, backgroundColor: colors.surface.bg, zIndex: 1000 },
+  overlay: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    backgroundColor: colors.surface.bg,
+    zIndex: 1000,
+  },
   safe: { flex: 1 },
   header: {
     flexDirection: 'row',
@@ -39,7 +47,14 @@ const styles = StyleSheet.create({
     paddingHorizontal: spacing.md,
     paddingTop: spacing.sm,
   },
-  circle: { width: 36, height: 36, borderRadius: radius.pill, backgroundColor: colors.surface.card, borderWidth: 1, borderColor: colors.surface.border },
+  circle: {
+    width: 36,
+    height: 36,
+    borderRadius: radius.pill,
+    backgroundColor: colors.surface.card,
+    borderWidth: 1,
+    borderColor: colors.surface.border,
+  },
   titleBlock: { alignItems: 'center', gap: 6 },
   smallBar: { width: 72, height: 10, borderRadius: 5, backgroundColor: colors.surface.muted },
   bigBar: { width: 150, height: 20, borderRadius: 8, backgroundColor: colors.surface.muted },

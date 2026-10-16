@@ -34,7 +34,18 @@ export interface ShareCardProps {
  * 카톡으로 보내는 이미지 한 장. 고정 폭(400pt)으로 그리고 3배로 캡처한다.
  * 화면 그리드와 같은 컴포넌트를 쓰되 오늘 표시·터치는 없다.
  */
-export function ShareCard({ weekStart, workers, cells, events, timeStyle, storeName, generatedAt, width = SHARE_CARD_WIDTH, ref, onLayoutHeight }: ShareCardProps) {
+export function ShareCard({
+  weekStart,
+  workers,
+  cells,
+  events,
+  timeStyle,
+  storeName,
+  generatedAt,
+  width = SHARE_CARD_WIDTH,
+  ref,
+  onLayoutHeight,
+}: ShareCardProps) {
   const metrics = computeGridMetrics(width - PADDING * 2 - 2, 64);
   const dates = weekDates(weekStart);
   const lanes = layoutEventLanes(events, weekStart);
@@ -64,21 +75,31 @@ export function ShareCard({ weekStart, workers, cells, events, timeStyle, storeN
         <EventBands items={lanes.items} laneCount={lanes.laneCount} metrics={metrics} compact />
         <DayHeaderRow dates={dates} today="" metrics={metrics} />
         {workers.map((worker) => (
-          <WorkerRow key={worker.id} worker={worker} dates={dates} cells={cells} today="" timeStyle={timeStyle} metrics={metrics} />
+          <WorkerRow
+            key={worker.id}
+            worker={worker}
+            dates={dates}
+            cells={cells}
+            today=""
+            timeStyle={timeStyle}
+            metrics={metrics}
+          />
         ))}
       </View>
 
       <View style={styles.footer}>
         <View style={styles.legend}>
           {legend.map((item) => (
-            <View key={`${item.label}-${item.bg}`} style={[styles.legendChip, { backgroundColor: item.bg }]}>
+            <View
+              key={`${item.label}-${item.bg}`}
+              style={[styles.legendChip, { backgroundColor: item.bg }]}>
               <AppText style={styles.legendText} color={item.fg}>
                 {item.label}
               </AppText>
             </View>
           ))}
           <AppText variant="caption" color={colors.text.tertiary}>
-            숫자 = 출근 시각
+            숫자 = 출근 시각 (~퇴근)
           </AppText>
         </View>
         <AppText variant="caption" color={colors.text.tertiary}>
@@ -91,12 +112,28 @@ export function ShareCard({ weekStart, workers, cells, events, timeStyle, storeN
 
 const styles = StyleSheet.create({
   card: { backgroundColor: colors.surface.card, padding: PADDING, gap: spacing.md },
-  titleRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', gap: spacing.sm },
+  titleRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    gap: spacing.sm,
+  },
   titleText: { flex: 1, gap: 2 },
   store: { fontFamily: fonts.bold, fontSize: 20, lineHeight: 26, color: colors.text.primary },
-  titleBadge: { backgroundColor: colors.brand.yellow, borderRadius: radius.pill, paddingHorizontal: 12, paddingVertical: 6 },
-  badgeText: { fontFamily: fonts.bold, fontSize: 13, lineHeight: 16, color: colors.text.onYellow },
-  table: { alignSelf: 'center', borderRadius: radius.md, borderWidth: 1, borderColor: colors.surface.border, overflow: 'hidden' },
+  titleBadge: {
+    backgroundColor: colors.brand.primary,
+    borderRadius: radius.pill,
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+  },
+  badgeText: { fontFamily: fonts.bold, fontSize: 13, lineHeight: 16, color: colors.text.onPrimary },
+  table: {
+    alignSelf: 'center',
+    borderRadius: radius.md,
+    borderWidth: 1,
+    borderColor: colors.surface.border,
+    overflow: 'hidden',
+  },
   footer: { gap: spacing.xs },
   legend: { flexDirection: 'row', flexWrap: 'wrap', alignItems: 'center', gap: spacing.sm },
   legendChip: { borderRadius: radius.pill, paddingHorizontal: 10, paddingVertical: 3 },

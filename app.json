@@ -14,7 +14,7 @@
     "android": {
       "package": "com.regeminbox.quickcalendar",
       "adaptiveIcon": {
-        "backgroundColor": "#FFD200",
+        "backgroundColor": "#5B5FE8",
         "foregroundImage": "./assets/images/android-icon-foreground.png",
         "monochromeImage": "./assets/images/android-icon-monochrome.png"
       },
@@ -38,7 +38,7 @@
       [
         "expo-splash-screen",
         {
-          "backgroundColor": "#FFD200",
+          "backgroundColor": "#5B5FE8",
           "image": "./assets/images/splash-icon.png",
           "imageWidth": 160
         }

@@ -20,14 +20,19 @@ describe('근무자', () => {
 
     s.renameWorker(a, '김민준2');
     s.moveWorker(b, -1);
-    expect(useAppStore.getState().workers.sort((x, y) => x.order - y.order).map((w) => w.name)).toEqual([
-      '이서연',
-      '김민준2',
-    ]);
+    expect(
+      useAppStore
+        .getState()
+        .workers.sort((x, y) => x.order - y.order)
+        .map((w) => w.name),
+    ).toEqual(['이서연', '김민준2']);
 
     const card = useAppStore.getState().cards.find((c) => c.id === 'status_jeongil')!;
     s.setCellCard(a, W1, card);
-    expect(useAppStore.getState().cells[cellKey(a, W1)]).toMatchObject({ label: '정일', cardId: 'status_jeongil' });
+    expect(useAppStore.getState().cells[cellKey(a, W1)]).toMatchObject({
+      label: '정일',
+      cardId: 'status_jeongil',
+    });
 
     s.removeWorker(a);
     expect(useAppStore.getState().workers).toHaveLength(1);
@@ -45,14 +50,21 @@ describe('셀과 카드', () => {
     s.setCellCard(w, W1, edu);
     s.deleteCard('c_edu');
     expect(useAppStore.getState().cards.some((c) => c.id === 'c_edu')).toBe(false);
-    expect(useAppStore.getState().cells[cellKey(w, W1)]).toMatchObject({ label: '교육', bg: '#DDEBFF' });
+    expect(useAppStore.getState().cells[cellKey(w, W1)]).toMatchObject({
+      label: '교육',
+      bg: '#DDEBFF',
+    });
   });
 
   it('직접 입력 시간은 cardId 없이 저장되고, 지우기가 된다', () => {
     const s = useAppStore.getState();
     const w = s.addWorker('최수아');
     s.setCellTime(w, W1, '0930');
-    expect(useAppStore.getState().cells[cellKey(w, W1)]).toMatchObject({ cardId: null, kind: 'time', time: '0930' });
+    expect(useAppStore.getState().cells[cellKey(w, W1)]).toMatchObject({
+      cardId: null,
+      kind: 'time',
+      time: '0930',
+    });
     s.clearCell(w, W1);
     expect(useAppStore.getState().cells[cellKey(w, W1)]).toBeUndefined();
   });
@@ -86,7 +98,13 @@ describe('주 단위 작업', () => {
 describe('행사', () => {
   it('시작/종료가 뒤집혀도 정렬해서 저장하고, 빈 제목은 기본 제목', () => {
     const s = useAppStore.getState();
-    const id = s.upsertEvent({ title: '  ', start: '2026-11-06', end: '2026-11-03', color: '#FFD200', icon: 'star' });
+    const id = s.upsertEvent({
+      title: '  ',
+      start: '2026-11-06',
+      end: '2026-11-03',
+      color: '#FFD200',
+      icon: 'star',
+    });
     const e = useAppStore.getState().events.find((x) => x.id === id)!;
     expect(e).toMatchObject({ title: '고래잇 행사', start: '2026-11-03', end: '2026-11-06' });
     s.upsertEvent({ ...e, title: '고래잇 페스타' });
@@ -101,12 +119,60 @@ describe('예시 데이터 / 백업', () => {
     const sample = buildSample(new Date(2026, 9, 28));
     expect(sample.workers).toHaveLength(5);
     expect(Object.keys(sample.cells)).toHaveLength(35);
-    expect(sample.events[0]).toMatchObject({ title: '고래잇 행사', start: '2026-10-27', end: '2026-10-30' });
+    expect(sample.events[0]).toMatchObject({
+      title: '고래잇 행사',
+      start: '2026-10-27',
+      end: '2026-10-30',
+    });
   });
 
   it('normalizeImported는 빠진 필드를 기본값으로 채운다', () => {
-    const out = normalizeImported({ version: 1, workers: [], cards: [], events: [], cells: {}, settings: { storeName: '테스트' } } as never);
+    const out = normalizeImported({
+      version: 1,
+      workers: [],
+      cards: [],
+      events: [],
+      cells: {},
+      settings: { storeName: '테스트' },
+    } as never);
     expect(out.cards.length).toBeGreaterThan(0);
     expect(out.settings).toMatchObject({ storeName: '테스트', timeStyle: 'compact' });
+  });
+});
+
+describe('시간 범위 셀', () => {
+  it('setCellTime에 퇴근 시각을 넘기면 endTime이 함께 저장된다', () => {
+    const s = useAppStore.getState();
+    const w = s.addWorker('근무자');
+    s.setCellTime(w, W1, '1530', '2200');
+    expect(useAppStore.getState().cells[cellKey(w, W1)]).toMatchObject({
+      cardId: null,
+      kind: 'time',
+      time: '1530',
+      endTime: '2200',
+    });
+    s.setCellTime(w, W1, '1000');
+    expect(useAppStore.getState().cells[cellKey(w, W1)].endTime).toBeUndefined();
+  });
+
+  it('범위 시간 카드를 셀에 넣으면 endTime이 복사된다', () => {
+    const s = useAppStore.getState();
+    const w = s.addWorker('근무자');
+    s.upsertCard({
+      id: 'time_range',
+      kind: 'time',
+      label: '1400~2200',
+      time: '1400',
+      endTime: '2200',
+      bg: '#FFFFFF',
+      fg: '#141414',
+    });
+    const card = useAppStore.getState().cards.find((c) => c.id === 'time_range')!;
+    s.setCellCard(w, W1, card);
+    expect(useAppStore.getState().cells[cellKey(w, W1)]).toMatchObject({
+      cardId: 'time_range',
+      time: '1400',
+      endTime: '2200',
+    });
   });
 });

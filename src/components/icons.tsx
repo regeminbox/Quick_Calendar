@@ -29,10 +29,22 @@ export function ChevronLeftIcon({ size, color = colors.text.primary, strokeWidth
   );
 }
 
-export function ChevronRightIcon({ size, color = colors.text.primary, strokeWidth = 2 }: IconProps) {
+export function ChevronRightIcon({
+  size,
+  color = colors.text.primary,
+  strokeWidth = 2,
+}: IconProps) {
   return (
     <Base size={size}>
       <Path d="M9 18l6-6-6-6" {...stroke(color, strokeWidth)} />
+    </Base>
+  );
+}
+
+export function ChevronDownIcon({ size, color = colors.text.primary, strokeWidth = 2 }: IconProps) {
+  return (
+    <Base size={size}>
+      <Path d="M6 9l6 6 6-6" {...stroke(color, strokeWidth)} />
     </Base>
   );
 }
@@ -52,7 +64,10 @@ export function PeopleIcon({ size, color = colors.text.primary, strokeWidth = 2 
     <Base size={size}>
       <Circle cx={9} cy={8} r={3.5} {...stroke(color, strokeWidth)} />
       <Path d="M2.5 20c0-3.6 2.9-6 6.5-6s6.5 2.4 6.5 6" {...stroke(color, strokeWidth)} />
-      <Path d="M16 4.6a3.5 3.5 0 0 1 0 6.8M18 14.3c2.1.7 3.5 2.6 3.5 5.7" {...stroke(color, strokeWidth)} />
+      <Path
+        d="M16 4.6a3.5 3.5 0 0 1 0 6.8M18 14.3c2.1.7 3.5 2.6 3.5 5.7"
+        {...stroke(color, strokeWidth)}
+      />
     </Base>
   );
 }
@@ -103,7 +118,10 @@ export function CheckIcon({ size, color = colors.text.primary, strokeWidth = 2.5
 export function TrashIcon({ size, color = colors.text.primary, strokeWidth = 2 }: IconProps) {
   return (
     <Base size={size}>
-      <Path d="M4 7h16M10 11v6M14 11v6M6 7l1 13h10l1-13M9 7V4h6v3" {...stroke(color, strokeWidth)} />
+      <Path
+        d="M4 7h16M10 11v6M14 11v6M6 7l1 13h10l1-13M9 7V4h6v3"
+        {...stroke(color, strokeWidth)}
+      />
     </Base>
   );
 }
@@ -111,7 +129,10 @@ export function TrashIcon({ size, color = colors.text.primary, strokeWidth = 2 }
 export function PencilIcon({ size, color = colors.text.primary, strokeWidth = 2 }: IconProps) {
   return (
     <Base size={size}>
-      <Path d="M4 20h4L18.5 9.5a2.1 2.1 0 0 0-3-3L5 17v3zM13.5 6.5l3 3" {...stroke(color, strokeWidth)} />
+      <Path
+        d="M4 20h4L18.5 9.5a2.1 2.1 0 0 0-3-3L5 17v3zM13.5 6.5l3 3"
+        {...stroke(color, strokeWidth)}
+      />
     </Base>
   );
 }
@@ -144,7 +165,10 @@ export function ArrowDownIcon({ size, color = colors.text.primary, strokeWidth =
 export function EraserIcon({ size, color = colors.text.primary, strokeWidth = 2 }: IconProps) {
   return (
     <Base size={size}>
-      <Path d="M3 17l7.5-7.5 6 6L13 19H7l-4-2zM10.5 9.5l5-5a2 2 0 0 1 2.8 0l2.2 2.2a2 2 0 0 1 0 2.8l-4 4" {...stroke(color, strokeWidth)} />
+      <Path
+        d="M3 17l7.5-7.5 6 6L13 19H7l-4-2zM10.5 9.5l5-5a2 2 0 0 1 2.8 0l2.2 2.2a2 2 0 0 1 0 2.8l-4 4"
+        {...stroke(color, strokeWidth)}
+      />
     </Base>
   );
 }
@@ -156,7 +180,11 @@ export function SparkleIcon({ size, color = colors.text.primary }: IconProps) {
         d="M12 2.5c.6 4.6 2.9 6.9 7.5 7.5-4.6.6-6.9 2.9-7.5 7.5-.6-4.6-2.9-6.9-7.5-7.5 4.6-.6 6.9-2.9 7.5-7.5z"
         fill={color}
       />
-      <Path d="M19 15.5c.25 1.9 1.2 2.85 3.1 3.1-1.9.25-2.85 1.2-3.1 3.1-.25-1.9-1.2-2.85-3.1-3.1 1.9-.25 2.85-1.2 3.1-3.1z" fill={color} opacity={0.7} />
+      <Path
+        d="M19 15.5c.25 1.9 1.2 2.85 3.1 3.1-1.9.25-2.85 1.2-3.1 3.1-.25-1.9-1.2-2.85-3.1-3.1 1.9-.25 2.85-1.2 3.1-3.1z"
+        fill={color}
+        opacity={0.7}
+      />
     </Base>
   );
 }

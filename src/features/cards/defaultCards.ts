@@ -13,12 +13,13 @@ function palette(key: (typeof cardPalette)[number]['key']) {
   return found;
 }
 
-export function timeCard(time: string, order: number, builtIn = true): Card {
+export function timeCard(time: string, order: number, builtIn = true, endTime?: string): Card {
   return {
-    id: `time_${time}`,
+    id: `time_${time}${endTime ? `_${endTime}` : ''}`,
     kind: 'time',
-    label: time,
+    label: endTime ? `${time}~${endTime}` : time,
     time,
+    endTime,
     bg: colors.surface.card,
     fg: colors.text.primary,
     order,
@@ -32,9 +33,33 @@ export function buildDefaultCards(): Card[] {
   const pink = palette('pink');
   const purple = palette('purple');
   const statusCards: Card[] = [
-    { id: 'status_hyumu', kind: 'status', label: '휴무', bg: gray.bg, fg: gray.fg, order: 100, builtIn: true },
-    { id: 'status_jeongil', kind: 'status', label: '정일', bg: pink.bg, fg: pink.fg, order: 101, builtIn: true },
-    { id: 'status_yeoncha', kind: 'status', label: '연차', bg: purple.bg, fg: purple.fg, order: 102, builtIn: true },
+    {
+      id: 'status_hyumu',
+      kind: 'status',
+      label: '휴무',
+      bg: gray.bg,
+      fg: gray.fg,
+      order: 100,
+      builtIn: true,
+    },
+    {
+      id: 'status_jeongil',
+      kind: 'status',
+      label: '정일',
+      bg: pink.bg,
+      fg: pink.fg,
+      order: 101,
+      builtIn: true,
+    },
+    {
+      id: 'status_yeoncha',
+      kind: 'status',
+      label: '연차',
+      bg: purple.bg,
+      fg: purple.fg,
+      order: 102,
+      builtIn: true,
+    },
   ];
   return [...timeCards, ...statusCards];
 }

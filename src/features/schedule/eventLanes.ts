@@ -19,8 +19,15 @@ export function layoutEventLanes(
 ): { items: EventLaneItem[]; laneCount: number } {
   const ranged = events
     .map((event) => ({ event, range: eventColumnRange(event, weekStart) }))
-    .filter((x): x is { event: CalendarEvent; range: { from: number; to: number } } => x.range !== null)
-    .sort((a, b) => a.range.from - b.range.from || a.range.to - b.range.to || a.event.title.localeCompare(b.event.title));
+    .filter(
+      (x): x is { event: CalendarEvent; range: { from: number; to: number } } => x.range !== null,
+    )
+    .sort(
+      (a, b) =>
+        a.range.from - b.range.from ||
+        a.range.to - b.range.to ||
+        a.event.title.localeCompare(b.event.title),
+    );
 
   const laneEnds: number[] = [];
   const items: EventLaneItem[] = [];

@@ -1,4 +1,5 @@
 import { StyleSheet, View } from 'react-native';
+import Animated, { FadeIn } from 'react-native-reanimated';
 
 import { CalendarIcon } from '@/components/icons';
 import { AppText } from '@/components/ui/AppText';
@@ -12,7 +13,7 @@ export interface EmptyStateProps {
 
 export function EmptyState({ onAddWorker, onSeedSample }: EmptyStateProps) {
   return (
-    <View style={styles.wrap}>
+    <Animated.View entering={FadeIn.duration(260)} style={styles.wrap}>
       <View style={styles.tile}>
         <CalendarIcon size={30} />
       </View>
@@ -24,19 +25,24 @@ export function EmptyState({ onAddWorker, onSeedSample }: EmptyStateProps) {
         <Button title="근무자 추가" variant="primary" onPress={onAddWorker} />
         <Button title="예시로 채우기" variant="secondary" onPress={onSeedSample} />
       </View>
-    </View>
+    </Animated.View>
   );
 }
 
 const styles = StyleSheet.create({
-  wrap: { alignItems: 'center', gap: spacing.md, paddingVertical: spacing.xxl, paddingHorizontal: spacing.lg },
+  wrap: {
+    alignItems: 'center',
+    gap: spacing.md,
+    paddingVertical: spacing.xxl,
+    paddingHorizontal: spacing.lg,
+  },
   tile: {
     width: 64,
     height: 64,
     borderRadius: radius.lg,
-    backgroundColor: colors.brand.yellowPale,
+    backgroundColor: colors.brand.primaryPale,
     borderWidth: 1,
-    borderColor: colors.brand.yellowSoft,
+    borderColor: colors.brand.primarySoft,
     alignItems: 'center',
     justifyContent: 'center',
     marginBottom: spacing.xs,

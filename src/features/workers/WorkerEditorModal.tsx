@@ -20,13 +20,28 @@ export interface WorkerEditorModalProps {
 
 export function WorkerEditorModal({ state, onClose }: WorkerEditorModalProps) {
   return (
-    <Sheet visible={!!state} onClose={onClose} title={state?.mode === 'edit' ? '근무자 수정' : '근무자 추가'}>
-      {state ? <WorkerForm key={state.mode === 'edit' ? state.worker.id : 'new'} state={state} onClose={onClose} /> : null}
+    <Sheet
+      visible={!!state}
+      onClose={onClose}
+      title={state?.mode === 'edit' ? '근무자 수정' : '근무자 추가'}>
+      {state ? (
+        <WorkerForm
+          key={state.mode === 'edit' ? state.worker.id : 'new'}
+          state={state}
+          onClose={onClose}
+        />
+      ) : null}
     </Sheet>
   );
 }
 
-function WorkerForm({ state, onClose }: { state: NonNullable<WorkerEditorState>; onClose: () => void }) {
+function WorkerForm({
+  state,
+  onClose,
+}: {
+  state: NonNullable<WorkerEditorState>;
+  onClose: () => void;
+}) {
   const addWorker = useAppStore((s) => s.addWorker);
   const renameWorker = useAppStore((s) => s.renameWorker);
   const setWorkerActive = useAppStore((s) => s.setWorkerActive);
@@ -55,7 +70,10 @@ function WorkerForm({ state, onClose }: { state: NonNullable<WorkerEditorState>;
 
   const remove = async () => {
     if (!worker) return;
-    const ok = await confirmAsync(`${worker.name} 님을 삭제할까요?`, '이 근무자의 근무표 칸도 함께 지워져요.');
+    const ok = await confirmAsync(
+      `${worker.name} 님을 삭제할까요?`,
+      '이 근무자의 근무표 칸도 함께 지워져요.',
+    );
     if (!ok) return;
     removeWorker(worker.id);
     onClose();
@@ -84,7 +102,12 @@ function WorkerForm({ state, onClose }: { state: NonNullable<WorkerEditorState>;
               끄면 표에서 숨겨지고 기록은 남아요
             </AppText>
           </View>
-          <Switch value={active} onValueChange={setActive} trackColor={{ true: colors.brand.yellow, false: colors.surface.border }} thumbColor={colors.surface.card} />
+          <Switch
+            value={active}
+            onValueChange={setActive}
+            trackColor={{ true: colors.brand.primary, false: colors.surface.border }}
+            thumbColor={colors.surface.card}
+          />
         </View>
       ) : null}
       <View style={styles.buttons}>
@@ -98,7 +121,12 @@ function WorkerForm({ state, onClose }: { state: NonNullable<WorkerEditorState>;
 }
 
 const styles = StyleSheet.create({
-  switchRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', gap: spacing.md },
+  switchRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    gap: spacing.md,
+  },
   switchText: { flex: 1, gap: 2 },
   buttons: { flexDirection: 'row', gap: spacing.sm, alignItems: 'center' },
   spacer: { flex: 1 },

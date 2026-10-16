@@ -34,7 +34,11 @@ export function useShareImage(cardHeight: number, cardWidth: number) {
         return;
       }
       successHaptic();
-      await Sharing.shareAsync(uri, { mimeType: 'image/png', dialogTitle: '근무표 보내기', UTI: 'public.png' });
+      await Sharing.shareAsync(uri, {
+        mimeType: 'image/png',
+        dialogTitle: '근무표 보내기',
+        UTI: 'public.png',
+      });
     } catch (e) {
       setError(e instanceof Error ? e.message : '이미지를 만들지 못했어요. 다시 시도해 주세요.');
     } finally {

@@ -1,6 +1,12 @@
 import { useEffect } from 'react';
 import { StyleSheet, View } from 'react-native';
-import Animated, { Easing, useAnimatedStyle, useSharedValue, withRepeat, withTiming } from 'react-native-reanimated';
+import Animated, {
+  Easing,
+  useAnimatedStyle,
+  useSharedValue,
+  withRepeat,
+  withTiming,
+} from 'react-native-reanimated';
 
 import { colors, radius } from '@/theme/tokens';
 
@@ -19,7 +25,11 @@ export function WeekGridSkeleton({ metrics, rows = 5 }: WeekGridSkeletonProps) {
   const pulse = useSharedValue(0.45);
 
   useEffect(() => {
-    pulse.value = withRepeat(withTiming(1, { duration: 750, easing: Easing.inOut(Easing.quad) }), -1, true);
+    pulse.value = withRepeat(
+      withTiming(1, { duration: 750, easing: Easing.inOut(Easing.quad) }),
+      -1,
+      true,
+    );
   }, [pulse]);
 
   const pulseStyle = useAnimatedStyle(() => ({ opacity: pulse.value }));
@@ -39,11 +49,14 @@ export function WeekGridSkeleton({ metrics, rows = 5 }: WeekGridSkeletonProps) {
       <Animated.View style={pulseStyle}>
         {Array.from({ length: rows }, (_, r) => (
           <View key={r} style={styles.row}>
-            <View style={[styles.nameCell, { width: metrics.nameColWidth, height: metrics.rowHeight }]}>
+            <View
+              style={[styles.nameCell, { width: metrics.nameColWidth, height: metrics.rowHeight }]}>
               <View style={styles.nameBar} />
             </View>
             {days.map((c) => (
-              <View key={c} style={[styles.cell, { width: metrics.dayColWidth, height: metrics.rowHeight }]}>
+              <View
+                key={c}
+                style={[styles.cell, { width: metrics.dayColWidth, height: metrics.rowHeight }]}>
                 <View style={styles.cellBar} />
               </View>
             ))}
@@ -63,7 +76,11 @@ const styles = StyleSheet.create({
     borderColor: colors.surface.border,
     overflow: 'hidden',
   },
-  header: { flexDirection: 'row', backgroundColor: colors.brand.yellow },
+  header: {
+    flexDirection: 'row',
+    backgroundColor: colors.brand.primarySoft,
+    borderRadius: radius.md,
+  },
   headerCell: { alignItems: 'center', justifyContent: 'center', gap: 4 },
   headerDot: { width: 22, height: 22, borderRadius: 11, backgroundColor: 'rgba(20, 20, 20, 0.12)' },
   headerBar: { width: 14, height: 6, borderRadius: 3, backgroundColor: 'rgba(20, 20, 20, 0.12)' },

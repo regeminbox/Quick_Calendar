@@ -49,10 +49,26 @@ export default function ShareScreen() {
       </View>
       <ScrollView contentContainerStyle={styles.content}>
         <View style={styles.fullWidth}>
-          <SegmentedControl options={TIME_STYLE_OPTIONS} value={settings.timeStyle} onChange={(v: TimeStyle) => updateSettings({ timeStyle: v })} />
+          <SegmentedControl
+            options={TIME_STYLE_OPTIONS}
+            value={settings.timeStyle}
+            onChange={(v: TimeStyle) => updateSettings({ timeStyle: v })}
+          />
         </View>
-        <View style={[styles.previewFrame, { width: SHARE_CARD_WIDTH * scale, height: cardHeight ? cardHeight * scale : undefined }]}>
-          <View style={{ width: SHARE_CARD_WIDTH, transformOrigin: 'top left', transform: [{ scale }] }}>
+        <View
+          style={[
+            styles.previewFrame,
+            {
+              width: SHARE_CARD_WIDTH * scale,
+              height: cardHeight ? cardHeight * scale : undefined,
+            },
+          ]}>
+          <View
+            style={{
+              width: SHARE_CARD_WIDTH,
+              transformOrigin: 'top left',
+              transform: [{ scale }],
+            }}>
             <ShareCard
               ref={ref}
               weekStart={weekStart}
@@ -91,7 +107,13 @@ export default function ShareScreen() {
 
 const styles = StyleSheet.create({
   safe: { flex: 1, backgroundColor: colors.surface.bg },
-  header: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: spacing.lg, paddingTop: spacing.md },
+  header: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    paddingHorizontal: spacing.lg,
+    paddingTop: spacing.md,
+  },
   content: { padding: spacing.lg, gap: spacing.md, alignItems: 'center' },
   previewFrame: {
     overflow: 'hidden',

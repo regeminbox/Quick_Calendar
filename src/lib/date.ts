@@ -1,4 +1,11 @@
-import { addDays, differenceInCalendarDays, format, isValid, parseISO, startOfWeek } from 'date-fns';
+import {
+  addDays,
+  differenceInCalendarDays,
+  format,
+  isValid,
+  parseISO,
+  startOfWeek,
+} from 'date-fns';
 
 /** 'yyyy-MM-dd' 형식의 로컬 달력 날짜 */
 export type ISODate = string;
@@ -19,9 +26,7 @@ export function fromISODate(iso: ISODate): Date {
 }
 
 export function isISODate(value: unknown): value is ISODate {
-  return (
-    typeof value === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(value) && isValid(parseISO(value))
-  );
+  return typeof value === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(value) && isValid(parseISO(value));
 }
 
 export function startOfWeekISO(date: Date | ISODate): ISODate {
@@ -145,4 +150,42 @@ export function formatTimeLabel(hhmm: string, style: TimeStyle = 'colon'): strin
   const n = normalizeTimeInput(hhmm) ?? hhmm;
   if (style === 'compact') return n.replace(/^0/, '');
   return `${n.slice(0, 2)}:${n.slice(2)}`;
+}
+
+export interface TimeRange {
+  start: string;
+  end?: string;
+}
+
+/** '1530~22' | '1530-22' | '15:30 ~ 22:00' | '1000' → 시작(+종료) 'HHmm'. 잘못된 입력은 null */
+export function parseTimeRange(input: string): TimeRange | null {
+  const parts = input
+    .trim()
+    .split(/\s*(?:~|-|–|—|to|부터|,)\s*|\s+/i)
+    .filter(Boolean);
+  if (parts.length === 0 || parts.length > 2) return null;
+  const start = normalizeTimeInput(parts[0]);
+  if (!start) return null;
+  if (parts.length === 1) return { start };
+  const end = normalizeTimeInput(parts[1]);
+  if (!end) return null;
+  return { start, end };
+}
+
+/** 종료 시각 짧은 표기: compact '22' / '2130', colon '22:00' */
+export function formatEndTime(end: string, style: TimeStyle = 'colon'): string {
+  const n = normalizeTimeInput(end) ?? end;
+  if (style === 'compact')
+    return n.endsWith('00') ? String(Number(n.slice(0, 2))) : n.replace(/^0/, '');
+  return formatTimeLabel(n, 'colon');
+}
+
+/** '1530~22' / '15:30~22:00' (종료 없으면 시작만) */
+export function formatTimeRange(
+  start: string,
+  end: string | undefined,
+  style: TimeStyle = 'colon',
+): string {
+  const s = formatTimeLabel(start, style);
+  return end ? `${s}~${formatEndTime(end, style)}` : s;
 }

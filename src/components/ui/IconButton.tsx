@@ -1,5 +1,11 @@
 import type { ReactNode } from 'react';
-import { Pressable, StyleSheet, type PressableProps, type StyleProp, type ViewStyle } from 'react-native';
+import {
+  Pressable,
+  StyleSheet,
+  type PressableProps,
+  type StyleProp,
+  type ViewStyle,
+} from 'react-native';
 
 import { colors, radius } from '@/theme/tokens';
 
@@ -11,7 +17,14 @@ export interface IconButtonProps extends Omit<PressableProps, 'style' | 'childre
 }
 
 /** 둥근 아이콘 버튼 (기본 36pt) */
-export function IconButton({ children, size = 36, filled = true, style, disabled, ...rest }: IconButtonProps) {
+export function IconButton({
+  children,
+  size = 36,
+  filled = true,
+  style,
+  disabled,
+  ...rest
+}: IconButtonProps) {
   return (
     <Pressable
       accessibilityRole="button"
@@ -35,5 +48,10 @@ export function IconButton({ children, size = 36, filled = true, style, disabled
 }
 
 const styles = StyleSheet.create({
-  base: { borderRadius: radius.pill, borderWidth: 1, alignItems: 'center', justifyContent: 'center' },
+  base: {
+    borderRadius: radius.pill,
+    borderWidth: 1,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
 });

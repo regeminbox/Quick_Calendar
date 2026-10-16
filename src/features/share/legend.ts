@@ -8,7 +8,11 @@ export interface LegendItem {
 }
 
 /** 이번 주 표에 실제로 쓰인 상태 카드만 범례로 (라벨+색 기준 중복 제거) */
-export function collectLegend(cells: Record<string, CellValue>, workers: Worker[], dates: ISODate[]): LegendItem[] {
+export function collectLegend(
+  cells: Record<string, CellValue>,
+  workers: Worker[],
+  dates: ISODate[],
+): LegendItem[] {
   const seen = new Map<string, LegendItem>();
   for (const worker of workers) {
     for (const date of dates) {

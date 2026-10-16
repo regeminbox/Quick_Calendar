@@ -12,7 +12,10 @@ export interface GridMetrics {
 }
 
 /** 주어진 가용 폭(테두리 제외)에 7일이 들어가도록 열 폭 계산 */
-export function computeGridMetrics(availableWidth: number, nameColWidth: number = grid.nameColWidth): GridMetrics {
+export function computeGridMetrics(
+  availableWidth: number,
+  nameColWidth: number = grid.nameColWidth,
+): GridMetrics {
   const dayColWidth = Math.floor((availableWidth - nameColWidth) / 7);
   return {
     nameColWidth,

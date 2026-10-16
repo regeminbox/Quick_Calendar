@@ -1,48 +1,58 @@
 /**
- * 디자인 토큰 — 이마트 노랑 포인트 + 웜 그레이 배경, 색은 상태 표시에만 사용.
- * 레퍼런스: ref.theseeker.io/r/7391 (톤), /r/3398 (노랑 위계), /r/7484 (표 구조)
+ * 디자인 토큰 — 밝은 중성 배경 + 인디고 포인트 + 파스텔 상태색(연두·라벤더·분홍·살구·하늘·노랑).
+ * 캘린더 레퍼런스 톤을 따르고, 색은 상태·선택 표시에만 쓴다. 고래잇 행사 띠만 파스텔 노랑을 기본으로 둔다.
  */
 export const colors = {
   brand: {
-    yellow: '#FFD200',
-    yellowDeep: '#F2B600',
-    yellowSoft: '#FFF1A8',
+    /** 포인트 — 버튼·오늘·선택 (레퍼런스의 인디고) */
+    primary: '#5B5FE8',
+    primaryDeep: '#4549CC',
+    /** 연한 라벤더 — 날짜 헤더, 선택한 주 */
+    primarySoft: '#E6E5FF',
+    /** 아주 연한 라벤더 — 오늘 열, 안내 상자 */
+    primaryPale: '#F4F3FF',
+    /** 고래잇 행사 띠 기본색 — 파스텔 노랑 */
+    yellow: '#FFE38A',
+    yellowDeep: '#D9A400',
+    yellowSoft: '#FFF1B8',
     yellowPale: '#FFFBE6',
   },
   surface: {
-    bg: '#F6F5F1',
+    bg: '#F3F3F1',
     card: '#FFFFFF',
-    border: '#E6E3DC',
-    muted: '#ECEAE4',
-    overlay: 'rgba(20, 20, 20, 0.35)',
+    border: '#E7E6E2',
+    muted: '#EEEEEB',
+    overlay: 'rgba(23, 23, 28, 0.35)',
   },
   text: {
-    primary: '#141414',
-    secondary: '#6F6B63',
-    tertiary: '#A39F96',
+    primary: '#17171C',
+    secondary: '#6E7281',
+    tertiary: '#A3A6B0',
     inverse: '#FFFFFF',
-    onYellow: '#141414',
+    onYellow: '#17171C',
+    onPrimary: '#FFFFFF',
   },
   weekday: {
-    sun: '#D13B3B',
-    sat: '#2F6BD6',
+    sun: '#D14B4B',
+    sat: '#3B6FD6',
   },
   feedback: {
-    danger: '#D13B3B',
-    success: '#1E7A46',
+    danger: '#D14B4B',
+    dangerSoft: '#FDE1E1',
+    success: '#2E8A5A',
   },
 } as const;
 
-/** 커스텀 카드 색 선택지 (배경/글자 쌍). 8종. */
+/** 커스텀 카드 색 선택지 (배경/글자 쌍). 8종 — 파스텔 배경 + 진한 글자 */
 export const cardPalette = [
-  { key: 'yellow', name: '노랑', bg: '#FFF1A8', fg: '#8A6400' },
-  { key: 'orange', name: '주황', bg: '#FFE3C2', fg: '#B45309' },
-  { key: 'pink', name: '분홍', bg: '#FDE2E2', fg: '#D13B3B' },
-  { key: 'green', name: '초록', bg: '#DDF3E4', fg: '#1E7A46' },
-  { key: 'blue', name: '파랑', bg: '#DDEBFF', fg: '#1D5FD0' },
-  { key: 'purple', name: '보라', bg: '#EDE4FF', fg: '#6B3FD1' },
+  { key: 'yellow', name: '노랑', bg: '#FFF1B8', fg: '#8A6400' },
+  { key: 'orange', name: '살구', bg: '#FFE6CC', fg: '#B35A0B' },
+  { key: 'pink', name: '분홍', bg: '#FDE1F0', fg: '#C22A7A' },
+  { key: 'green', name: '연두', bg: '#E6F5CF', fg: '#4A7A14' },
+  { key: 'blue', name: '하늘', bg: '#DAEBFF', fg: '#1D5FC9' },
+  { key: 'purple', name: '라벤더', bg: '#EADFFB', fg: '#5E33C2' },
+  { key: 'mint', name: '민트', bg: '#D8F3EA', fg: '#107A5E' },
   { key: 'gray', name: '회색', bg: '#ECEAE4', fg: '#6F6B63' },
-  { key: 'black', name: '검정', bg: '#141414', fg: '#FFFFFF' },
 ] as const;
 
 export type CardPaletteKey = (typeof cardPalette)[number]['key'];

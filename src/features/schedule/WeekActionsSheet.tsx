@@ -19,14 +19,23 @@ export interface WeekActionsSheetProps {
 }
 
 /** 주 단위 작업: 지난주 복사, 이번 주 비우기 */
-export function WeekActionsSheet({ visible, weekStart, filledCount, onClose }: WeekActionsSheetProps) {
+export function WeekActionsSheet({
+  visible,
+  weekStart,
+  filledCount,
+  onClose,
+}: WeekActionsSheetProps) {
   const copyPreviousWeek = useAppStore((s) => s.copyPreviousWeek);
   const clearWeek = useAppStore((s) => s.clearWeek);
   const previous = shiftWeek(weekStart, -1);
 
   const onCopy = async () => {
     if (filledCount > 0) {
-      const ok = await confirmAsync('지난주 근무표를 복사할까요?', `이번 주에 이미 입력한 ${filledCount}칸이 지난주 내용으로 바뀌어요.`, '복사');
+      const ok = await confirmAsync(
+        '지난주 근무표를 복사할까요?',
+        `이번 주에 이미 입력한 ${filledCount}칸이 지난주 내용으로 바뀌어요.`,
+        '복사',
+      );
       if (!ok) return;
     }
     copyPreviousWeek(weekStart);
@@ -35,7 +44,11 @@ export function WeekActionsSheet({ visible, weekStart, filledCount, onClose }: W
   };
 
   const onClear = async () => {
-    const ok = await confirmAsync('이번 주를 비울까요?', `${weekRangeLabel(weekStart)} 근무표 ${filledCount}칸이 지워져요.`, '비우기');
+    const ok = await confirmAsync(
+      '이번 주를 비울까요?',
+      `${weekRangeLabel(weekStart)} 근무표 ${filledCount}칸이 지워져요.`,
+      '비우기',
+    );
     if (!ok) return;
     clearWeek(weekStart);
     successHaptic();
@@ -43,7 +56,11 @@ export function WeekActionsSheet({ visible, weekStart, filledCount, onClose }: W
   };
 
   return (
-    <Sheet visible={visible} onClose={onClose} title={`${weekRangeLabel(weekStart)} 주 작업`} subtitle="자주 쓰는 일괄 작업이에요">
+    <Sheet
+      visible={visible}
+      onClose={onClose}
+      title={`${weekRangeLabel(weekStart)} 주 작업`}
+      subtitle="자주 쓰는 일괄 작업이에요">
       <View style={styles.list}>
         <Button
           title={`지난주(${weekRangeLabel(previous)}) 근무표 복사`}

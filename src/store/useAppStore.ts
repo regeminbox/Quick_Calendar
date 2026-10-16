@@ -24,9 +24,11 @@ export interface AppActions {
   setWorkerActive: (id: string, active: boolean) => void;
   removeWorker: (id: string) => void;
   setCellCard: (workerId: string, date: ISODate, card: Card) => void;
-  setCellTime: (workerId: string, date: ISODate, time: string) => void;
+  setCellTime: (workerId: string, date: ISODate, time: string, endTime?: string) => void;
   clearCell: (workerId: string, date: ISODate) => void;
-  upsertCard: (card: Omit<Card, 'order' | 'builtIn'> & Partial<Pick<Card, 'order' | 'builtIn'>>) => void;
+  upsertCard: (
+    card: Omit<Card, 'order' | 'builtIn'> & Partial<Pick<Card, 'order' | 'builtIn'>>,
+  ) => void;
   deleteCard: (id: string) => void;
   upsertEvent: (event: Omit<CalendarEvent, 'id'> & { id?: string }) => string;
   deleteEvent: (id: string) => void;
@@ -40,7 +42,11 @@ export interface AppActions {
 
 export type AppStore = PersistedState & AppActions;
 
-export const DEFAULT_SETTINGS: Settings = { storeName: '이마트 퀵커머스', timeStyle: 'compact' };
+export const DEFAULT_SETTINGS: Settings = {
+  storeName: '이마트 퀵커머스',
+  timeStyle: 'compact',
+  onboarded: false,
+};
 
 export function initialState(): PersistedState {
   return {
@@ -58,11 +64,27 @@ export function sortByOrder<T extends { order: number }>(items: T[]): T[] {
 }
 
 export function cellFromCard(card: Card): CellValue {
-  return { cardId: card.id, kind: card.kind, label: card.label, time: card.time, bg: card.bg, fg: card.fg };
+  return {
+    cardId: card.id,
+    kind: card.kind,
+    label: card.label,
+    time: card.time,
+    endTime: card.endTime,
+    bg: card.bg,
+    fg: card.fg,
+  };
 }
 
-export function customTimeCell(time: string): CellValue {
-  return { cardId: null, kind: 'time', label: time, time, bg: colors.surface.card, fg: colors.text.primary };
+export function customTimeCell(time: string, endTime?: string): CellValue {
+  return {
+    cardId: null,
+    kind: 'time',
+    label: time,
+    time,
+    endTime,
+    bg: colors.surface.card,
+    fg: colors.text.primary,
+  };
 }
 
 /** 가져온 백업을 현재 스키마에 맞춰 정리 (알 수 없는 필드는 버림) */
@@ -74,7 +96,7 @@ export function normalizeImported(data: PersistedState): PersistedState {
     cards: Array.isArray(data.cards) && data.cards.length > 0 ? data.cards : base.cards,
     events: Array.isArray(data.events) ? data.events : base.events,
     cells: data.cells && typeof data.cells === 'object' ? data.cells : base.cells,
-    settings: { ...base.settings, ...(data.settings ?? {}) },
+    settings: { ...base.settings, ...(data.settings ?? {}), onboarded: true },
   };
 }
 
@@ -84,16 +106,61 @@ export function buildSample(now: Date = new Date()): PersistedState {
   const cards = base.cards;
   const byId = (id: string) => cards.find((c) => c.id === id)!;
   const names = ['김민준', '이서연', '박지후', '최수아', '정하준'];
-  const workers: Worker[] = names.map((name, i) => ({ id: `w_sample_${i + 1}`, name, order: i, active: true }));
+  const workers: Worker[] = names.map((name, i) => ({
+    id: `w_sample_${i + 1}`,
+    name,
+    order: i,
+    active: true,
+  }));
   const weekStart = startOfWeekISO(now);
   const dates = weekDates(weekStart);
   // 열: 일 월 화 수 목 금 토
   const pattern: string[][] = [
-    ['time_1000', 'time_1000', 'status_yeoncha', 'status_jeongil', 'time_1300', 'time_1000', 'status_jeongil'],
-    ['time_1400', 'status_jeongil', 'time_1000', 'time_1000', 'status_jeongil', 'time_1400', 'time_1000'],
-    ['status_jeongil', 'time_1530', 'time_1530', 'time_1530', 'status_jeongil', 'time_1530', 'time_1530'],
-    ['status_jeongil', 'time_1900', 'time_1900', 'time_1900', 'time_1900', 'status_jeongil', 'status_jeongil'],
-    ['time_1300', 'status_jeongil', 'status_jeongil', 'status_jeongil', 'status_jeongil', 'status_jeongil', 'time_1300'],
+    [
+      'time_1000',
+      'time_1000',
+      'status_yeoncha',
+      'status_jeongil',
+      'time_1300',
+      'time_1000',
+      'status_jeongil',
+    ],
+    [
+      'time_1400',
+      'status_jeongil',
+      'time_1000',
+      'time_1000',
+      'status_jeongil',
+      'time_1400',
+      'time_1000',
+    ],
+    [
+      'status_jeongil',
+      'time_1530',
+      'time_1530',
+      'time_1530',
+      'status_jeongil',
+      'time_1530',
+      'time_1530',
+    ],
+    [
+      'status_jeongil',
+      'time_1900',
+      'time_1900',
+      'time_1900',
+      'time_1900',
+      'status_jeongil',
+      'status_jeongil',
+    ],
+    [
+      'time_1300',
+      'status_jeongil',
+      'status_jeongil',
+      'status_jeongil',
+      'status_jeongil',
+      'status_jeongil',
+      'time_1300',
+    ],
   ];
   const cells: Record<string, CellValue> = {};
   workers.forEach((w, row) => {
@@ -101,6 +168,8 @@ export function buildSample(now: Date = new Date()): PersistedState {
       cells[cellKey(w.id, date)] = cellFromCard(byId(pattern[row][col]));
     });
   });
+  // 범위 입력 예시: 1400~22
+  cells[cellKey(workers[1].id, dates[0])] = customTimeCell('1400', '2200');
   const events: CalendarEvent[] = [
     {
       id: 'ev_sample_goraeit',
@@ -111,7 +180,7 @@ export function buildSample(now: Date = new Date()): PersistedState {
       icon: 'star',
     },
   ];
-  return { ...base, workers, cells, events };
+  return { ...base, workers, cells, events, settings: { ...base.settings, onboarded: true } };
 }
 
 /** localStorage가 막힌 환경(샌드박스 iframe, 프라이빗 모드)에서도 앱이 멈추지 않도록 실패를 삼킨다 */
@@ -152,7 +221,9 @@ export const useAppStore = create<AppStore>()(
         return id;
       },
       renameWorker: (id, name) =>
-        set((s) => ({ workers: s.workers.map((w) => (w.id === id ? { ...w, name: name.trim() } : w)) })),
+        set((s) => ({
+          workers: s.workers.map((w) => (w.id === id ? { ...w, name: name.trim() } : w)),
+        })),
       moveWorker: (id, direction) =>
         set((s) => {
           const sorted = sortByOrder(s.workers);
@@ -169,15 +240,20 @@ export const useAppStore = create<AppStore>()(
           const cells = { ...s.cells };
           for (const key of Object.keys(cells)) if (key.startsWith(`${id}|`)) delete cells[key];
           return {
-            workers: sortByOrder(s.workers.filter((w) => w.id !== id)).map((w, idx) => ({ ...w, order: idx })),
+            workers: sortByOrder(s.workers.filter((w) => w.id !== id)).map((w, idx) => ({
+              ...w,
+              order: idx,
+            })),
             cells,
           };
         }),
 
       setCellCard: (workerId, date, card) =>
         set((s) => ({ cells: { ...s.cells, [cellKey(workerId, date)]: cellFromCard(card) } })),
-      setCellTime: (workerId, date, time) =>
-        set((s) => ({ cells: { ...s.cells, [cellKey(workerId, date)]: customTimeCell(time) } })),
+      setCellTime: (workerId, date, time, endTime) =>
+        set((s) => ({
+          cells: { ...s.cells, [cellKey(workerId, date)]: customTimeCell(time, endTime) },
+        })),
       clearCell: (workerId, date) =>
         set((s) => {
           const key = cellKey(workerId, date);
@@ -190,7 +266,8 @@ export const useAppStore = create<AppStore>()(
       upsertCard: (card) =>
         set((s) => {
           const existing = s.cards.find((c) => c.id === card.id);
-          if (existing) return { cards: s.cards.map((c) => (c.id === card.id ? { ...existing, ...card } : c)) };
+          if (existing)
+            return { cards: s.cards.map((c) => (c.id === card.id ? { ...existing, ...card } : c)) };
           const order = card.order ?? Math.max(-1, ...s.cards.map((c) => c.order)) + 1;
           return { cards: [...s.cards, { builtIn: false, ...card, order }] };
         }),
@@ -208,7 +285,9 @@ export const useAppStore = create<AppStore>()(
             icon: event.icon,
           };
           const exists = s.events.some((e) => e.id === id);
-          return { events: exists ? s.events.map((e) => (e.id === id ? next : e)) : [...s.events, next] };
+          return {
+            events: exists ? s.events.map((e) => (e.id === id ? next : e)) : [...s.events, next],
+          };
         });
         return id;
       },
@@ -230,7 +309,8 @@ export const useAppStore = create<AppStore>()(
       clearWeek: (weekStart) =>
         set((s) => {
           const cells = { ...s.cells };
-          for (const w of s.workers) for (const date of weekDates(weekStart)) delete cells[cellKey(w.id, date)];
+          for (const w of s.workers)
+            for (const date of weekDates(weekStart)) delete cells[cellKey(w.id, date)];
           return { cells };
         }),
 
