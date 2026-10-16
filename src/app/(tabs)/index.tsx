@@ -8,7 +8,7 @@ import { WeekGrid } from '@/features/schedule/WeekGrid';
 import { WeekHeader } from '@/features/schedule/WeekHeader';
 import { useGridMetrics } from '@/features/schedule/useGridMetrics';
 import { shiftWeek, todayISO } from '@/lib/date';
-import { selectActiveWorkers, selectCells, selectEvents, selectSettings } from '@/store/selectors';
+import { useActiveWorkers, useCells, useEvents, useSettings } from '@/store/selectors';
 import { currentWeekStart, useAppStore } from '@/store/useAppStore';
 import { colors, spacing } from '@/theme/tokens';
 
@@ -17,10 +17,10 @@ export default function ScheduleScreen() {
   const today = useMemo(() => todayISO(), []);
   const metrics = useGridMetrics();
 
-  const workers = useAppStore(selectActiveWorkers);
-  const cells = useAppStore(selectCells);
-  const events = useAppStore(selectEvents);
-  const settings = useAppStore(selectSettings);
+  const workers = useActiveWorkers();
+  const cells = useCells();
+  const events = useEvents();
+  const settings = useSettings();
   const seedSample = useAppStore((s) => s.seedSample);
 
   const goPrev = useCallback(() => setWeekStart((w) => shiftWeek(w, -1)), []);
