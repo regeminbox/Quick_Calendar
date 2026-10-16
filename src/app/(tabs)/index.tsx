@@ -62,7 +62,7 @@ export default function ScheduleScreen() {
         onPrev={goPrev}
         onNext={goNext}
         onToday={goToday}
-        onShare={workers.length > 0 ? () => router.push('/share') : undefined}
+        onShare={workers.length > 0 ? () => router.push({ pathname: '/share', params: { week: weekStart } }) : undefined}
       />
       <View style={styles.gridWrap}>
         <WeekGrid

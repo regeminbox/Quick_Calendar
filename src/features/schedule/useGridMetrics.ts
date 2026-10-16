@@ -11,12 +11,9 @@ export interface GridMetrics {
   tableWidth: number;
 }
 
-/** 화면 폭에 맞춰 7일이 가로 스크롤 없이 들어가도록 열 폭 계산 (태블릿/웹은 520pt에서 멈춤) */
-export function useGridMetrics(horizontalPadding = spacing.md): GridMetrics {
-  const { width } = useWindowDimensions();
-  const inner = Math.min(width, 520) - horizontalPadding * 2 - 2;
-  const nameColWidth = grid.nameColWidth;
-  const dayColWidth = Math.floor((inner - nameColWidth) / 7);
+/** 주어진 가용 폭(테두리 제외)에 7일이 들어가도록 열 폭 계산 */
+export function computeGridMetrics(availableWidth: number, nameColWidth: number = grid.nameColWidth): GridMetrics {
+  const dayColWidth = Math.floor((availableWidth - nameColWidth) / 7);
   return {
     nameColWidth,
     dayColWidth,
@@ -25,4 +22,10 @@ export function useGridMetrics(horizontalPadding = spacing.md): GridMetrics {
     bandHeight: grid.bandHeight,
     tableWidth: nameColWidth + dayColWidth * 7,
   };
+}
+
+/** 화면 폭에 맞춰 7일이 가로 스크롤 없이 들어가도록 열 폭 계산 (태블릿/웹은 520pt에서 멈춤) */
+export function useGridMetrics(horizontalPadding = spacing.md): GridMetrics {
+  const { width } = useWindowDimensions();
+  return computeGridMetrics(Math.min(width, 520) - horizontalPadding * 2 - 2);
 }
