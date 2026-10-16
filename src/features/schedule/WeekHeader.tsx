@@ -1,6 +1,6 @@
 import { StyleSheet, View } from 'react-native';
 
-import { ChevronLeftIcon, ChevronRightIcon, PlusIcon, ShareIcon } from '@/components/icons';
+import { ChevronLeftIcon, ChevronRightIcon, MoreIcon, PlusIcon, ShareIcon } from '@/components/icons';
 import { AppText } from '@/components/ui/AppText';
 import { Button } from '@/components/ui/Button';
 import { IconButton } from '@/components/ui/IconButton';
@@ -15,9 +15,10 @@ export interface WeekHeaderProps {
   onToday: () => void;
   onAddEvent?: () => void;
   onShare?: () => void;
+  onMore?: () => void;
 }
 
-export function WeekHeader({ weekStart, isCurrentWeek, onPrev, onNext, onToday, onAddEvent, onShare }: WeekHeaderProps) {
+export function WeekHeader({ weekStart, isCurrentWeek, onPrev, onNext, onToday, onAddEvent, onShare, onMore }: WeekHeaderProps) {
   const year = fromISODate(weekStart).getFullYear();
   return (
     <View style={styles.wrap}>
@@ -38,6 +39,11 @@ export function WeekHeader({ weekStart, isCurrentWeek, onPrev, onNext, onToday, 
       <View style={styles.actions}>
         {!isCurrentWeek ? <Button title="오늘" size="sm" variant="ghost" onPress={onToday} /> : <View />}
         <View style={styles.actionsRight}>
+          {onMore ? (
+            <IconButton size={32} onPress={onMore} accessibilityLabel="주 작업 더보기">
+              <MoreIcon size={18} />
+            </IconButton>
+          ) : null}
           {onAddEvent ? (
             <Button title="행사" size="sm" variant="secondary" icon={<PlusIcon size={16} />} onPress={onAddEvent} />
           ) : null}

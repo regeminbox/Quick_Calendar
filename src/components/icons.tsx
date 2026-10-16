@@ -160,3 +160,13 @@ export function SparkleIcon({ size, color = colors.text.primary }: IconProps) {
     </Base>
   );
 }
+
+export function MoreIcon({ size, color = colors.text.primary }: IconProps) {
+  return (
+    <Base size={size}>
+      <Circle cx={5} cy={12} r={2} fill={color} />
+      <Circle cx={12} cy={12} r={2} fill={color} />
+      <Circle cx={19} cy={12} r={2} fill={color} />
+    </Base>
+  );
+}

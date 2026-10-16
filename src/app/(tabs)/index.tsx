@@ -7,10 +7,11 @@ import { CardEditorModal, type CardEditorState } from '@/features/cards/CardEdit
 import { EventSheet, type EventSheetState } from '@/features/events/EventSheet';
 import { CellEditorSheet, type CellTarget } from '@/features/schedule/CellEditorSheet';
 import { EmptyState } from '@/features/schedule/EmptyState';
+import { WeekActionsSheet } from '@/features/schedule/WeekActionsSheet';
 import { WeekGrid } from '@/features/schedule/WeekGrid';
 import { WeekHeader } from '@/features/schedule/WeekHeader';
 import { useGridMetrics } from '@/features/schedule/useGridMetrics';
-import { type ISODate, shiftWeek, todayISO } from '@/lib/date';
+import { cellKey, type ISODate, shiftWeek, todayISO, weekDates } from '@/lib/date';
 import { useActiveWorkers, useCells, useEvents, useSettings } from '@/store/selectors';
 import type { CalendarEvent, Card } from '@/store/types';
 import { currentWeekStart, useAppStore } from '@/store/useAppStore';
@@ -31,8 +32,16 @@ export default function ScheduleScreen() {
   const [editing, setEditing] = useState<CellTarget | null>(null);
   const [cardEditor, setCardEditor] = useState<CardEditorState>(null);
   const [eventSheet, setEventSheet] = useState<EventSheetState>(null);
+  const [weekActions, setWeekActions] = useState(false);
   /** "새 카드"로 만든 카드를 바로 넣을 칸 */
   const pendingCell = useRef<CellTarget | null>(null);
+
+  const filledCount = useMemo(() => {
+    const dates = weekDates(weekStart);
+    let n = 0;
+    for (const w of workers) for (const d of dates) if (cells[cellKey(w.id, d)]) n++;
+    return n;
+  }, [cells, workers, weekStart]);
 
   const goPrev = useCallback(() => setWeekStart((w) => shiftWeek(w, -1)), []);
   const goNext = useCallback(() => setWeekStart((w) => shiftWeek(w, 1)), []);
@@ -66,6 +75,7 @@ export default function ScheduleScreen() {
         onNext={goNext}
         onToday={goToday}
         onAddEvent={() => setEventSheet({ mode: 'new', weekStart })}
+        onMore={workers.length > 0 ? () => setWeekActions(true) : undefined}
         onShare={workers.length > 0 ? () => router.push({ pathname: '/share', params: { week: weekStart } }) : undefined}
       />
       <View style={styles.gridWrap}>
@@ -84,6 +94,7 @@ export default function ScheduleScreen() {
           }
         />
       </View>
+      <WeekActionsSheet visible={weekActions} weekStart={weekStart} filledCount={filledCount} onClose={() => setWeekActions(false)} />
       <EventSheet state={eventSheet} onClose={() => setEventSheet(null)} />
       <CellEditorSheet target={editing} onClose={() => setEditing(null)} onRequestNewCard={requestNewCard} />
       <CardEditorModal
