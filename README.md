@@ -38,6 +38,7 @@ npm run typecheck   # tsc --noEmit
 npm run lint        # expo lint
 npm test            # jest (날짜 계산, 스토어, 행사 띠 배치, 백업)
 npm run web         # 브라우저에서 화면 확인
+npm run demo:web    # dist-demo/quickcalendar-demo.html — 한 파일짜리 웹 데모 (아무 데나 올려서 공유)
 ```
 
 ## 앱 설치 파일 만들기 (EAS Build)

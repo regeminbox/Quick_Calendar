@@ -114,6 +114,31 @@ export function buildSample(now: Date = new Date()): PersistedState {
   return { ...base, workers, cells, events };
 }
 
+/** localStorage가 막힌 환경(샌드박스 iframe, 프라이빗 모드)에서도 앱이 멈추지 않도록 실패를 삼킨다 */
+const safeStorage = {
+  getItem: async (name: string) => {
+    try {
+      return await AsyncStorage.getItem(name);
+    } catch {
+      return null;
+    }
+  },
+  setItem: async (name: string, value: string) => {
+    try {
+      await AsyncStorage.setItem(name, value);
+    } catch {
+      /* 저장 불가 환경: 메모리로만 동작 */
+    }
+  },
+  removeItem: async (name: string) => {
+    try {
+      await AsyncStorage.removeItem(name);
+    } catch {
+      /* ignore */
+    }
+  },
+};
+
 export const useAppStore = create<AppStore>()(
   persist(
     (set) => ({
@@ -217,7 +242,7 @@ export const useAppStore = create<AppStore>()(
     {
       name: 'quickcalendar/v1',
       version: SCHEMA_VERSION,
-      storage: createJSONStorage(() => AsyncStorage),
+      storage: createJSONStorage(() => safeStorage),
       partialize: (s): PersistedState => ({
         version: s.version,
         workers: s.workers,

@@ -26,7 +26,15 @@
       "bundler": "metro"
     },
     "plugins": [
-      "expo-router",
+      [
+        "expo-router",
+        {
+          "asyncRoutes": {
+            "web": false,
+            "default": false
+          }
+        }
+      ],
       [
         "expo-splash-screen",
         {

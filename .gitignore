@@ -41,3 +41,6 @@ example
 # generated native folders
 /ios
 /android
+
+# 웹 데모 산출물
+dist-demo/
