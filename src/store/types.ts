@@ -40,7 +40,7 @@ export interface CalendarEvent {
   start: ISODate;
   end: ISODate;
   color: string;
-  icon: 'whale' | 'none';
+  icon: 'star' | 'none';
 }
 
 export interface Settings {

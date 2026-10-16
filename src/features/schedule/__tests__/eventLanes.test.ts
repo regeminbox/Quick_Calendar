@@ -10,7 +10,7 @@ const ev = (id: string, start: string, end: string): CalendarEvent => ({
   start,
   end,
   color: '#FFD200',
-  icon: 'whale',
+  icon: 'star',
 });
 
 describe('layoutEventLanes', () => {

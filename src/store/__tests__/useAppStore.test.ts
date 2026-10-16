@@ -86,7 +86,7 @@ describe('주 단위 작업', () => {
 describe('행사', () => {
   it('시작/종료가 뒤집혀도 정렬해서 저장하고, 빈 제목은 기본 제목', () => {
     const s = useAppStore.getState();
-    const id = s.upsertEvent({ title: '  ', start: '2026-11-06', end: '2026-11-03', color: '#FFD200', icon: 'whale' });
+    const id = s.upsertEvent({ title: '  ', start: '2026-11-06', end: '2026-11-03', color: '#FFD200', icon: 'star' });
     const e = useAppStore.getState().events.find((x) => x.id === id)!;
     expect(e).toMatchObject({ title: '고래잇 행사', start: '2026-11-03', end: '2026-11-06' });
     s.upsertEvent({ ...e, title: '고래잇 페스타' });

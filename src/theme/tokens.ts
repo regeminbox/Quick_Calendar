@@ -9,16 +9,6 @@ export const colors = {
     yellowSoft: '#FFF1A8',
     yellowPale: '#FFFBE6',
   },
-  mascot: {
-    bodyTop: '#FFD56A',
-    body: '#F8B73A',
-    bodyBottom: '#E9961F',
-    belly: '#FFE9B5',
-    cheek: '#F0864A',
-    eye: '#1F1F1F',
-    highlight: '#FFFFFF',
-    shadow: '#D9CFB8',
-  },
   surface: {
     bg: '#F6F5F1',
     card: '#FFFFFF',

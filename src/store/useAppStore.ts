@@ -108,7 +108,7 @@ export function buildSample(now: Date = new Date()): PersistedState {
       start: dates[2],
       end: dates[5],
       color: colors.brand.yellow,
-      icon: 'whale',
+      icon: 'star',
     },
   ];
   return { ...base, workers, cells, events };

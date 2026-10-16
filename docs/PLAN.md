@@ -24,7 +24,7 @@
 | 데이터 | **폰 로컬 저장만** (zustand + AsyncStorage), JSON 백업 내보내기/가져오기 | 가입·서버 없이 가장 빨리 완성 |
 | 카톡 공유 | **이미지만** — 표를 PNG로 렌더 → OS 공유 시트 → 카카오톡 | Kakao SDK·앱 등록 불필요 |
 | 디자인 | 이마트 **노랑** 포인트 + 심플한 밝은 배경, 나머지는 미니멀 + 상태색만 | 작은 화면/카톡 이미지에서 또렷하게 |
-| 마스코트 | 고래잇 느낌의 **노란 고래 캐릭터를 3D 젤리 스타일 SVG**로 직접 그려 로딩·빈 화면에 사용 | 원본 이미지 저작권 회피, 벡터라 모든 해상도 대응 |
+| 로딩/빈 화면 | 마스코트 없이 **근무표 스켈레톤 로더**(실제 표와 같은 치수, 펄스) + **아이콘 타일 빈 상태** | 레이아웃이 흔들리지 않고 가장 심플함. 캐릭터 IP 이슈 없음 |
 | 행사 띠 | 별도 화면 없이, 근무표 **날짜 헤더 위에 "고래잇 행사" 띠를 기간(예: 3일~6일)으로 표시** (공유 이미지에도 포함) | 행사 기간 인력 배치 한눈에 |
 | 카드 | 기본 카드(시간 5종, 휴무·정일·연차) 외에 **사용자 커스텀 카드**(라벨+색) 추가 | 반차·교육·병가·오픈·마감 등 매장마다 다름 |
 
@@ -49,9 +49,6 @@
 brand.yellow      #FFD200   헤더·행사 띠·주요 버튼
 brand.yellowSoft  #FFF1A8   선택/오늘 강조
 brand.yellowPale  #FFFBE6   은은한 배경 강조
-mascot.body       #F8B73A   고래 몸통 (그라데이션 상단 #FFD56A → 하단 #E9961F)
-mascot.belly      #FFE9B5   배
-mascot.cheek      #F0864A   볼터치
 surface.bg        #F6F5F1   앱 배경 (웜 그레이)
 surface.card      #FFFFFF
 surface.border    #E6E3DC
@@ -70,14 +67,14 @@ radius 10/14/20 · spacing 4/8/12/16/24 · 폰트 Pretendard (OFL)
 ### MVP (M1–M4)
 1. **주간 근무표 그리드**: 이름 열 + 7일. 셀 탭 → 카드 선택 바텀시트. 이전/다음 주, 오늘.
 2. **카드 시스템**: 기본 시간 카드(10:00·13:00·14:00·15:30·19:00, 편집 가능), 상태 카드(휴무·정일·연차), **커스텀 카드 추가**(라벨 ≤4자, 색 8종 중 선택), 직접 시간 입력, 지우기.
-3. **행사 띠**: 근무표 상단 "+ 행사" 버튼(또는 날짜 헤더 길게 누르기) → 시작일·종료일 + 라벨(기본 "고래잇 행사") → 해당 날짜 열 위에 노란 띠 + 고래 아이콘. 띠 탭으로 수정/삭제. 겹치면 줄 추가. 별도 화면·탭 없음.
+3. **행사 띠**: 근무표 상단 "+ 행사" 버튼(또는 날짜 헤더 길게 누르기) → 시작일·종료일 + 라벨(기본 "고래잇 행사") → 해당 날짜 열 위에 노란 띠 + 반짝이(★) 아이콘. 띠 탭으로 수정/삭제. 겹치면 줄 추가. 별도 화면·탭 없음.
 4. **근무자 관리**: 추가·이름 변경·순서(위/아래)·비활성.
-5. **카톡 공유**: 공유 미리보기 화면에서 PNG 생성 → 공유 시트. 이미지 = 매장명 + 주간 범위 제목, 행사 띠, 노란 헤더, 표, 하단 범례 + 작은 고래.
-6. **마스코트 로딩**: 앱 시작(스토어 복원·폰트 로드) 동안 젤리 고래가 통통 튀는 로더. 빈 상태(근무자 없음)에도 사용.
+5. **카톡 공유**: 공유 미리보기 화면에서 PNG 생성 → 공유 시트. 이미지 = 매장명 + 주간 범위 제목, 행사 띠, 노란 헤더, 표, 하단 범례.
+6. **스켈레톤 로딩**: 앱 시작(스토어 복원·폰트 로드) 동안 근무표 화면과 같은 모양의 회색 블록 스켈레톤이 펄스하다가 실제 표로 전환. 빈 상태(근무자 없음)는 아이콘 타일 + 안내 + 버튼.
 7. **설정**: 매장명, 시간 표기(10:00 / 1000), 백업 내보내기(JSON 공유), 가져오기(파일 선택).
 
 ### 이후 (M5+)
-- 지난주 복사, 주 비우기, 햅틱, 앱 아이콘/스플래시(노랑+고래), 월간 개요, 다크 모드, 위젯.
+- 지난주 복사, 주 비우기, 햅틱, 앱 아이콘/스플래시(노랑), 월간 개요, 다크 모드, 위젯.
 
 ## 5. 아키텍처
 
@@ -93,8 +90,8 @@ app/
 src/
   theme/tokens.ts, typography.ts
   components/ui/              Button, Chip, Sheet(BottomSheet 래퍼), SegmentedControl, ColorSwatch
-  components/mascot/JellyWhale.tsx   SVG 고래 (react-native-svg, 그라데이션·하이라이트)
-  components/mascot/MascotLoader.tsx reanimated squash&stretch 바운스
+  components/AppLoader.tsx           스켈레톤 로딩 오버레이 (근무표 화면 모양)
+  features/schedule/WeekGridSkeleton.tsx  실제 그리드와 같은 치수의 스켈레톤 (펄스)
   features/schedule/WeekGrid.tsx, WeekHeader.tsx, CellEditorSheet.tsx, EventBands.tsx
   features/share/ShareCard.tsx, useShareImage.ts
   features/events/EventSheet.tsx     행사 띠 추가/수정 바텀시트 (기간 + 라벨, 기본 '고래잇 행사')
@@ -132,17 +129,17 @@ interface AppState {
 - 이름 열 60pt, 날짜 열 7×46pt = 322pt, 좌우 여백 4pt → 가로 스크롤 없이 한 화면.
 - 행 높이 44pt, 셀 글자 12pt(시간) / 12pt 굵게(상태), 라벨 4자까지 1줄.
 - 헤더(날짜 큰 글자 + 요일 작은 글자)는 ScrollView 밖에 고정, 일=빨강·토=파랑, 오늘 열은 yellowSoft.
-- 행사 띠는 헤더 아래 24pt 줄, 해당 열 범위만 노랑으로 채우고 제목 + 고래 아이콘.
+- 행사 띠는 헤더 아래 24pt 줄, 해당 열 범위만 노랑으로 채우고 제목 + 반짝이 아이콘.
 
 ### 5.4 공유 이미지
 - `ShareCard`를 **고정 400pt 폭**으로 미리보기 화면에 실제 렌더 → `captureRef(ref, { format: 'png', quality: 1, result: 'tmpfile', pixelRatio: 3 })` → 1200px 폭 PNG → `Sharing.shareAsync(uri, { mimeType: 'image/png', UTI: 'public.png' })`.
 - 캡처 전 폰트 로드 완료·레이아웃 완료(onLayout) 대기. 미리보기에 실제로 그리므로 오프스크린 트릭 불필요.
-- 구성: 제목(매장명 · 10/25~10/31 근무표) → 행사 띠 → 노란 헤더 → 표 → 범례(상태색) + 미니 고래 + 생성일.
+- 구성: 제목(매장명 · 10/25~10/31 근무표) → 행사 띠 → 노란 헤더 → 표 → 범례(상태색) + 생성일.
 
-### 5.5 마스코트 (JellyWhale)
-- `react-native-svg` Path로 둥근 몸통·꼬리·옆지느러미·눈·볼·웃는 입. RadialGradient(상단 밝게)·흰 하이라이트 타원·하단 어두운 림으로 "3D 젤리" 질감. 선택적으로 머리 위 작은 별 모자.
-- `MascotLoader`: reanimated `withRepeat(withSequence(scaleY 0.9/scaleX 1.1 → 1.05/0.97 → 1))` + translateY 바운스 + 그림자 타원 크기 연동. 60fps, JS 스레드 무관.
-- 고래잇 원본은 이마트 IP → **닮은꼴 오리지널**로 제작. 스토어 공개 시 안전. 공식 이미지 사용권이 있으면 `assets/`만 교체.
+### 5.5 로딩·빈 상태 (레퍼런스: /r/5029, /r/6740, /r/4276)
+- `AppLoader`: 폰트·스토어 준비 전까지 근무표 화면과 같은 레이아웃(헤더 바 + 노란 날짜 헤더 + 5행)을 회색 블록으로 그리고 opacity 펄스. 준비되면 FadeOut → 같은 자리에 실제 표.
+- `EmptyState`: 64pt 노란 아이콘 타일(캘린더) + 제목 + 설명 + "근무자 추가"/"예시로 채우기".
+- 행사 띠 아이콘은 작은 반짝이(★). 캐릭터/마스코트는 사용하지 않음.
 
 ## 6. 라이브러리 (모두 Expo Go에서 동작)
 expo-router · zustand · @react-native-async-storage/async-storage · date-fns · react-native-svg · react-native-reanimated · react-native-gesture-handler · @gorhom/bottom-sheet · react-native-view-shot · expo-sharing · expo-file-system · expo-document-picker · expo-haptics · expo-font + `pretendard`(npm) · @react-native-community/datetimepicker · expo-splash-screen
@@ -167,6 +164,5 @@ expo-router · zustand · @react-native-async-storage/async-storage · date-fns 
 - Android 공유 URI(file:// vs content://) → expo-sharing이 처리.
 - 카톡이 이미지를 압축 → 1200px 폭·PNG, "원본" 전송 안내.
 - 커스텀 라벨이 길면 셀 넘침 → 4자 제한 + 자동 축소(adjustsFontSizeToFit).
-- 고래잇 마스코트 IP → 오리지널 닮은꼴 사용.
 - Expo SDK new architecture 호환 → 최신 SDK 기준 라이브러리 버전 고정.
 - iOS 배포에는 Apple Developer Program(연 $129) 필요. Android는 APK 직접 설치 가능.

@@ -148,3 +148,15 @@ export function EraserIcon({ size, color = colors.text.primary, strokeWidth = 2 
     </Base>
   );
 }
+
+export function SparkleIcon({ size, color = colors.text.primary }: IconProps) {
+  return (
+    <Base size={size}>
+      <Path
+        d="M12 2.5c.6 4.6 2.9 6.9 7.5 7.5-4.6.6-6.9 2.9-7.5 7.5-.6-4.6-2.9-6.9-7.5-7.5 4.6-.6 6.9-2.9 7.5-7.5z"
+        fill={color}
+      />
+      <Path d="M19 15.5c.25 1.9 1.2 2.85 3.1 3.1-1.9.25-2.85 1.2-3.1 3.1-.25-1.9-1.2-2.85-3.1-3.1 1.9-.25 2.85-1.2 3.1-3.1z" fill={color} opacity={0.7} />
+    </Base>
+  );
+}

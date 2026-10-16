@@ -1,6 +1,6 @@
 import { Pressable, StyleSheet, View } from 'react-native';
 
-import { JellyWhale } from '@/components/mascot/JellyWhale';
+import { SparkleIcon } from '@/components/icons';
 import { AppText } from '@/components/ui/AppText';
 import type { CalendarEvent } from '@/store/types';
 import { colors, fonts, grid, radius } from '@/theme/tokens';
@@ -29,7 +29,7 @@ export function EventBands({ items, laneCount, metrics, onPressEvent, compact = 
         const top = grid.gap + lane * laneHeight;
         const band = (
           <View style={[styles.band, { backgroundColor: event.color, height: metrics.bandHeight }]}>
-            {event.icon === 'whale' ? <JellyWhale size={18} sparkle={false} /> : null}
+            {event.icon === 'star' ? <SparkleIcon size={13} /> : null}
             <AppText numberOfLines={1} style={styles.title}>
               {event.title}
             </AppText>
