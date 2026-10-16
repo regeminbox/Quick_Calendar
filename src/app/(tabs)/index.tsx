@@ -1,14 +1,17 @@
 import { router } from 'expo-router';
-import { useCallback, useMemo, useState } from 'react';
+import { useCallback, useMemo, useRef, useState } from 'react';
 import { StyleSheet, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
+import { CardEditorModal, type CardEditorState } from '@/features/cards/CardEditorModal';
+import { CellEditorSheet, type CellTarget } from '@/features/schedule/CellEditorSheet';
 import { EmptyState } from '@/features/schedule/EmptyState';
 import { WeekGrid } from '@/features/schedule/WeekGrid';
 import { WeekHeader } from '@/features/schedule/WeekHeader';
 import { useGridMetrics } from '@/features/schedule/useGridMetrics';
-import { shiftWeek, todayISO } from '@/lib/date';
+import { type ISODate, shiftWeek, todayISO } from '@/lib/date';
 import { useActiveWorkers, useCells, useEvents, useSettings } from '@/store/selectors';
+import type { Card } from '@/store/types';
 import { currentWeekStart, useAppStore } from '@/store/useAppStore';
 import { colors, spacing } from '@/theme/tokens';
 
@@ -22,10 +25,34 @@ export default function ScheduleScreen() {
   const events = useEvents();
   const settings = useSettings();
   const seedSample = useAppStore((s) => s.seedSample);
+  const setCellCard = useAppStore((s) => s.setCellCard);
+
+  const [editing, setEditing] = useState<CellTarget | null>(null);
+  const [cardEditor, setCardEditor] = useState<CardEditorState>(null);
+  /** "새 카드"로 만든 카드를 바로 넣을 칸 */
+  const pendingCell = useRef<CellTarget | null>(null);
 
   const goPrev = useCallback(() => setWeekStart((w) => shiftWeek(w, -1)), []);
   const goNext = useCallback(() => setWeekStart((w) => shiftWeek(w, 1)), []);
   const goToday = useCallback(() => setWeekStart(currentWeekStart()), []);
+
+  const onPressCell = useCallback((workerId: string, date: ISODate) => setEditing({ workerId, date }), []);
+
+  const requestNewCard = useCallback(() => {
+    pendingCell.current = editing;
+    setEditing(null);
+    // 시트가 닫힌 뒤 열어야 iOS에서 모달이 겹치지 않는다
+    setTimeout(() => setCardEditor({ mode: 'new', kind: 'status' }), 350);
+  }, [editing]);
+
+  const onCardSaved = useCallback(
+    (card: Card) => {
+      const target = pendingCell.current;
+      if (target) setCellCard(target.workerId, target.date, card);
+      pendingCell.current = null;
+    },
+    [setCellCard],
+  );
 
   return (
     <SafeAreaView style={styles.safe} edges={['top', 'left', 'right']}>
@@ -35,6 +62,7 @@ export default function ScheduleScreen() {
         onPrev={goPrev}
         onNext={goNext}
         onToday={goToday}
+        onShare={workers.length > 0 ? () => router.push('/share') : undefined}
       />
       <View style={styles.gridWrap}>
         <WeekGrid
@@ -45,9 +73,21 @@ export default function ScheduleScreen() {
           events={events}
           timeStyle={settings.timeStyle}
           metrics={metrics}
-          emptyContent={<EmptyState onAddWorker={() => router.push('/manage')} onSeedSample={seedSample} />}
+          onPressCell={onPressCell}
+          emptyContent={
+            <EmptyState onAddWorker={() => router.push({ pathname: '/manage', params: { add: '1' } })} onSeedSample={seedSample} />
+          }
         />
       </View>
+      <CellEditorSheet target={editing} onClose={() => setEditing(null)} onRequestNewCard={requestNewCard} />
+      <CardEditorModal
+        state={cardEditor}
+        onClose={() => {
+          setCardEditor(null);
+          pendingCell.current = null;
+        }}
+        onSaved={onCardSaved}
+      />
     </SafeAreaView>
   );
 }
