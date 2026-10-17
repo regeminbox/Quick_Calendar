@@ -4,6 +4,7 @@ import {
   FlatList,
   Keyboard,
   type ListRenderItemInfo,
+  ScrollView,
   StyleSheet,
   useWindowDimensions,
   View,
@@ -36,8 +37,10 @@ import { useAppStore } from '@/store/useAppStore';
 import { useWeekView } from '@/store/useWeekView';
 import { colors, spacing } from '@/theme/tokens';
 
-/** 올해 기준 앞뒤 2년 */
+/** 처음엔 올해 기준 앞뒤 2년. 검색하거나 끝의 칩을 누르면 범위가 늘어난다 */
 const YEARS_AROUND = 2;
+const MIN_YEAR = 1970;
+const MAX_YEAR = 2100;
 const COLUMNS = 3;
 const GAP = 10;
 const YEAR_H = 36;
@@ -116,9 +119,14 @@ export default function CalendarScreen() {
 
   const today = useMemo(() => todayISO(), []);
   const todayYear = Number(today.slice(0, 4));
+  // 보이는 연도 범위 — 고정이 아니라 필요할 때 늘어난다 (해가 바뀌어도 오늘 기준으로 다시 계산)
+  const [yearRange, setYearRange] = useState(() => ({
+    from: todayYear - YEARS_AROUND,
+    to: todayYear + YEARS_AROUND,
+  }));
   const years = useMemo(
-    () => Array.from({ length: YEARS_AROUND * 2 + 1 }, (_, i) => todayYear - YEARS_AROUND + i),
-    [todayYear],
+    () => Array.from({ length: yearRange.to - yearRange.from + 1 }, (_, i) => yearRange.from + i),
+    [yearRange],
   );
   const rows = useMemo(() => buildRows(years), [years]);
   const offsets = useMemo(() => {
@@ -140,6 +148,8 @@ export default function CalendarScreen() {
 
   const listRef = useRef<FlatList<Row>>(null);
   const closing = useRef(false);
+  /** 범위를 늘린 뒤 목록이 다시 그려지면 여기로 스크롤 */
+  const pendingJump = useRef<{ year: number; month?: number } | null>(null);
   const [query, setQuery] = useState('');
   const [searchError, setSearchError] = useState<string | null>(null);
   const [highlightKey, setHighlightKey] = useState<string | null>(null);
@@ -182,6 +192,37 @@ export default function CalendarScreen() {
     scrollToIndex(initialIndex, false);
   }, [initialIndex, scrollToIndex]);
 
+  const jumpTo = useCallback(
+    (year: number, month?: number) => {
+      if (month) {
+        scrollToIndex(rowIndexOfMonth(year, month));
+        flash(`${year}-${month}`);
+      } else {
+        scrollToIndex(rows.findIndex((r) => r.type === 'year' && r.year === year));
+      }
+    },
+    [rows, rowIndexOfMonth, scrollToIndex, flash],
+  );
+
+  /** 범위 밖 연도면 범위를 늘리고, 다시 그려진 뒤 그리로 간다 */
+  const goToYear = useCallback(
+    (year: number, month?: number) => {
+      if (years.includes(year)) {
+        jumpTo(year, month);
+        return;
+      }
+      pendingJump.current = { year, month };
+      setYearRange((r) => ({ from: Math.min(r.from, year), to: Math.max(r.to, year) }));
+    },
+    [years, jumpTo],
+  );
+  const onContentSizeChange = useCallback(() => {
+    const p = pendingJump.current;
+    if (!p) return;
+    pendingJump.current = null;
+    jumpTo(p.year, p.month);
+  }, [jumpTo]);
+
   const onSearch = useCallback(() => {
     const q = parseMonthQuery(query);
     if (!q) {
@@ -189,19 +230,14 @@ export default function CalendarScreen() {
       return;
     }
     const year = q.year ?? Number(anchor.slice(0, 4));
-    if (!years.includes(year)) {
-      setSearchError(`${years[0]}년 ~ ${years[years.length - 1]}년 사이만 볼 수 있어요`);
+    if (year < MIN_YEAR || year > MAX_YEAR) {
+      setSearchError(`년도는 ${MIN_YEAR}년 ~ ${MAX_YEAR}년 사이로 입력해 주세요`);
       return;
     }
     Keyboard.dismiss();
     tapHaptic();
-    if (q.month) {
-      scrollToIndex(rowIndexOfMonth(year, q.month));
-      flash(`${year}-${q.month}`);
-    } else {
-      scrollToIndex(rows.findIndex((r) => r.type === 'year' && r.year === year));
-    }
-  }, [query, anchor, years, rows, rowIndexOfMonth, scrollToIndex, flash]);
+    goToYear(year, q.month);
+  }, [query, anchor, goToYear]);
 
   const scrollToToday = useCallback(() => {
     tapHaptic();
@@ -323,7 +359,22 @@ export default function CalendarScreen() {
           error={searchError}
           accessibilityLabel="년도·월 검색"
         />
-        <View style={styles.yearChips}>
+        <ScrollView
+          horizontal
+          showsHorizontalScrollIndicator={false}
+          contentContainerStyle={styles.yearChips}
+          keyboardShouldPersistTaps="handled">
+          {yearRange.from > MIN_YEAR ? (
+            <Chip
+              label={`← ${yearRange.from - 1}년`}
+              size="sm"
+              dashed
+              onPress={() => {
+                tapHaptic();
+                goToYear(yearRange.from - 1);
+              }}
+            />
+          ) : null}
           {years.map((y) => (
             <Chip
               key={y}
@@ -331,11 +382,22 @@ export default function CalendarScreen() {
               size="sm"
               onPress={() => {
                 tapHaptic();
-                scrollToIndex(rows.findIndex((r) => r.type === 'year' && r.year === y));
+                jumpTo(y);
               }}
             />
           ))}
-        </View>
+          {yearRange.to < MAX_YEAR ? (
+            <Chip
+              label={`${yearRange.to + 1}년 →`}
+              size="sm"
+              dashed
+              onPress={() => {
+                tapHaptic();
+                goToYear(yearRange.to + 1);
+              }}
+            />
+          ) : null}
+        </ScrollView>
       </View>
 
       <FlatList
@@ -349,6 +411,7 @@ export default function CalendarScreen() {
           index,
         })}
         onLayout={onListLayout}
+        onContentSizeChange={onContentSizeChange}
         stickyHeaderIndices={yearIndices}
         contentContainerStyle={styles.list}
         showsVerticalScrollIndicator={false}
@@ -390,7 +453,7 @@ const styles = StyleSheet.create({
   },
   headerCenter: { alignItems: 'center', gap: 2, flex: 1, paddingHorizontal: spacing.sm },
   search: { paddingHorizontal: spacing.lg, gap: spacing.sm, paddingBottom: spacing.xs },
-  yearChips: { flexDirection: 'row', flexWrap: 'wrap', gap: spacing.xs },
+  yearChips: { flexDirection: 'row', gap: spacing.xs, paddingRight: spacing.lg },
   list: { paddingHorizontal: spacing.lg, paddingBottom: spacing.xxl },
   yearRow: { height: YEAR_H, justifyContent: 'center', backgroundColor: colors.surface.bg },
   monthsRow: { flexDirection: 'row', gap: GAP, height: MONTHS_ROW_H, alignItems: 'flex-start' },

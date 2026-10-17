@@ -52,7 +52,10 @@
     "typecheck": "tsc --noEmit",
     "test": "jest",
     "format": "prettier --write \"src/**/*.{ts,tsx}\"",
-    "demo:web": "node scripts/web-demo/build.js"
+    "demo:web": "node scripts/web-demo/build.js",
+    "check": "npm run lint && npm run typecheck && npm test -- --ci",
+    "apk": "npm run check && eas-cli build -p android --profile preview",
+    "export:native": "expo export --platform android --platform ios --output-dir dist-native"
   },
   "private": true,
   "jest": {

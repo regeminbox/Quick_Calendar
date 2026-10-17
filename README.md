@@ -22,42 +22,51 @@
 
 디자인·구조·결정 사항은 [`docs/PLAN.md`](docs/PLAN.md)에 있습니다.
 
-## 폰에서 바로 실행해 보기 (Expo Go)
+## 폰에 설치해 보기
+
+### A. 가장 쉬운 길 — GitHub에서 버튼 한 번으로 APK 받기 (Android)
+
+1. **한 번만 준비**: [expo.dev](https://expo.dev) 가입 → 프로필 → *Access tokens* → 토큰 만들기 → 이 저장소 *Settings → Secrets and variables → Actions → New repository secret* 에 이름 `EXPO_TOKEN`으로 저장.
+2. 저장소 **Actions** 탭 → **Android APK** → *Run workflow*.
+3. 10~20분 뒤 끝나면 그 실행 페이지 아래 **Artifacts → quickcalendar-apk** 를 내려받아 폰으로 보내고(카톡 나에게 보내기 등) 열면 설치됩니다. 처음엔 "출처를 알 수 없는 앱 허용"을 켜 달라고 합니다. Summary에 EAS 다운로드 링크도 함께 적힙니다.
+
+> 워크플로는 빌드 전에 lint · 타입체크 · 테스트를 먼저 돌리고, 하나라도 실패하면 APK를 만들지 않습니다.
+
+### B. 컴퓨터에서 직접
+
+```bash
+npm install
+npx eas-cli login      # expo.dev 계정
+npm run apk            # 오류 점검(lint·typecheck·test) 후 EAS preview APK 빌드 → 링크/QR
+```
+
+iOS는 Apple Developer Program(유료) 계정과 기기 등록이 필요합니다: `npx eas-cli build -p ios --profile preview`.
+
+### C. 설치 없이 바로 보기 (Expo Go, 개발용)
 
 1. 폰에 **Expo Go** 설치 (App Store / Play 스토어)
-2. 컴퓨터에서:
-   ```bash
-   npm install
-   npx expo start
-   ```
-3. 터미널의 QR 코드를 Expo Go(Android) 또는 카메라(iOS)로 스캔
+2. 컴퓨터에서 `npm install && npx expo start`
+3. 터미널의 QR 코드를 Expo Go(Android) 또는 카메라(iOS)로 스캔 (같은 와이파이)
 
-> 공유 시트(카톡 보내기)는 실제 기기에서만 동작합니다. 웹(`npx expo start --web`)은 화면 확인용입니다.
+> 공유 시트(카톡 보내기)·햅틱은 실제 기기에서만 동작합니다. 웹(`npm run web`, `npm run demo:web`)은 화면 확인용입니다.
+
+## 설치 전 오류 점검
+
+```bash
+npm run check          # lint + typecheck + 테스트 (CI와 같은 검사)
+npm run export:native  # Android/iOS 번들을 실제로 만들어 보는 가장 확실한 검사 (dist-native/)
+npx expo-doctor        # 의존성·설정 진단 (인터넷 필요)
+```
 
 ## 개발 명령
 
 ```bash
 npm run typecheck   # tsc --noEmit
 npm run lint        # expo lint
-npm test            # jest (날짜 계산, 스토어, 행사 띠 배치, 백업)
+npm test            # jest (날짜 계산, 스토어, 행사 띠 배치, 백업, 캘린더 검색, 칸 좌표)
 npm run web         # 브라우저에서 화면 확인
 npm run demo:web    # dist-demo/quickcalendar-demo.html — 한 파일짜리 웹 데모 (아무 데나 올려서 공유)
 ```
-
-## 앱 설치 파일 만들기 (EAS Build)
-
-Mac 없이도 클라우드에서 빌드합니다. [Expo 계정](https://expo.dev)이 필요합니다.
-
-```bash
-npm install -g eas-cli
-eas login
-eas init            # 프로젝트 ID를 app.json에 기록
-eas build -p android --profile preview   # 테스트용 APK (링크로 설치)
-eas build -p ios --profile preview       # iOS: Apple Developer Program 필요
-```
-
-- `preview`: 지인끼리 설치하는 내부 배포 (Android APK, iOS는 등록된 기기)
-- `production`: 스토어 제출용 (`eas submit`)
 
 ## 구조
 
