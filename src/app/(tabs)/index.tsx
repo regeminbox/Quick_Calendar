@@ -132,17 +132,22 @@ export default function ScheduleScreen() {
     [brushTool, clearCell, resolveBrushCard, setCellCard, setCellValue],
   );
 
-  // 꾹 누른 칸의 카드를 들고(비었으면 고른 카드), 끌면서 지나는 칸에 복사
+  // 꾹 누른 칸의 카드를 들고(비었으면 고른 카드), 끌면서 지나는 칸에 복사. 지우개면 지나는 칸을 비운다
   const onPaintStart = useCallback(
     (workerId: string, date: ISODate) => {
       const key = cellKey(workerId, date);
-      const source = useAppStore.getState().cells[key];
-      let value: CellValue | undefined = source;
-      if (!source && brushTool !== 'erase') {
-        const card = resolveBrushCard();
-        if (!card) return;
-        value = cellFromCard(card);
-        setCellValue(workerId, date, value);
+      let value: CellValue | undefined;
+      if (brushTool === 'erase') {
+        value = undefined;
+        setCellValue(workerId, date, undefined);
+      } else {
+        value = useAppStore.getState().cells[key];
+        if (!value) {
+          const card = resolveBrushCard();
+          if (!card) return;
+          value = cellFromCard(card);
+          setCellValue(workerId, date, value);
+        }
       }
       painting.current = { value, visited: new Set([key]) };
       lastTap.current = null;

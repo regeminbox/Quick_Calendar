@@ -93,7 +93,7 @@ export function CardPalette({ onManageCards }: CardPaletteProps) {
           <View style={styles.tipLines}>
             <TipLine mark="한 번" text="칸을 누르면 위에서 고른 카드가 들어가요" />
             <TipLine mark="두 번" text="연달아 누르면 직접 입력·다른 카드로 바꿔요" />
-            <TipLine mark="꾹+끌기" text="칸을 꾹 누른 채 옆으로 끌면 그 카드가 복사돼요" />
+            <TipLine mark="꾹+끌기" text="꾹 누른 채 끌면 그 카드가 복사돼요 (지우개면 지워져요)" />
           </View>
           <IconButton
             size={28}
