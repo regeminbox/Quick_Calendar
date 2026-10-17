@@ -1,13 +1,5 @@
 import type { ReactNode } from 'react';
-import {
-  KeyboardAvoidingView,
-  Modal,
-  Platform,
-  Pressable,
-  ScrollView,
-  StyleSheet,
-  View,
-} from 'react-native';
+import { KeyboardAvoidingView, Modal, Pressable, ScrollView, StyleSheet, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { colors, radius, spacing } from '@/theme/tokens';
@@ -33,9 +25,8 @@ export function Sheet({ visible, onClose, title, subtitle, children, footer }: S
       animationType="slide"
       onRequestClose={onClose}
       statusBarTranslucent>
-      <KeyboardAvoidingView
-        behavior={Platform.OS === 'ios' ? 'padding' : undefined}
-        style={styles.fill}>
+      {/* 안드로이드도 padding: statusBarTranslucent 모달 창은 키보드가 떠도 줄어들지 않아 입력창이 가려진다 */}
+      <KeyboardAvoidingView behavior="padding" keyboardVerticalOffset={0} style={styles.fill}>
         <Pressable style={styles.backdrop} onPress={onClose} accessibilityLabel="닫기" />
         <View style={[styles.sheet, { paddingBottom: Math.max(insets.bottom, spacing.md) }]}>
           <View style={styles.handle} />
