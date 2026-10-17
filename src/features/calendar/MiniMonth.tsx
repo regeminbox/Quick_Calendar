@@ -11,10 +11,11 @@ import type { MonthInfo } from './months';
 
 const ROWS = 6;
 const ROW_H = 17;
+const TITLE_H = 22;
 const WEEKDAY_H = 12;
 const PAD = 8;
-/** 테두리 포함 카드 높이 — 달마다 같아야 3열 격자가 맞는다. 달 이름은 카드 아래 선반 가격표에 */
-export const MINI_MONTH_HEIGHT = PAD * 2 + WEEKDAY_H + ROWS * ROW_H + 2;
+/** 테두리 포함 카드 높이 — 달마다 같아야 3열 격자가 맞는다 */
+export const MINI_MONTH_HEIGHT = PAD * 2 + TITLE_H + WEEKDAY_H + ROWS * ROW_H + 2;
 
 export interface MiniMonthProps {
   info: MonthInfo;
@@ -30,7 +31,7 @@ export interface MiniMonthProps {
   onPress: (info: MonthInfo) => void;
 }
 
-/** 3열 연간 개요용 작은 달 카드 — 진열대 위 상품처럼 선반에 올라간다. 누르면 큰 달 카드가 시트로 열린다 */
+/** 3열 연간 개요용 작은 달 카드. 누르면 큰 달 카드가 시트로 열린다 */
 export const MiniMonth = memo(function MiniMonth({
   info,
   width,
@@ -52,6 +53,7 @@ export const MiniMonth = memo(function MiniMonth({
       accessibilityLabel={`${info.year}년 ${info.month}월 열기`}
       containerStyle={{ width }}
       style={[styles.card, { height: MINI_MONTH_HEIGHT }, highlighted && styles.cardHighlighted]}>
+      <AppText style={styles.title}>{info.month}월</AppText>
       <View style={styles.weekdays}>
         {WEEKDAY_KO.map((d, i) => (
           <AppText
@@ -106,9 +108,15 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: colors.surface.border,
     padding: PAD,
-    boxShadow: '0 4px 10px rgba(70, 60, 120, 0.10)',
   },
   cardHighlighted: { borderColor: colors.brand.primary, borderWidth: 2, padding: PAD - 1 },
+  title: {
+    fontFamily: fonts.bold,
+    fontSize: 13,
+    lineHeight: TITLE_H,
+    color: colors.text.primary,
+    textAlign: 'center',
+  },
   weekdays: { flexDirection: 'row', height: WEEKDAY_H },
   weekday: {
     flex: 1,
