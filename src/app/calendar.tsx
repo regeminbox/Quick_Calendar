@@ -1,89 +1,86 @@
-import { addDays, addMonths, format, getDaysInMonth, startOfMonth } from 'date-fns';
-import { router } from 'expo-router';
-import { memo, useCallback, useMemo, useRef } from 'react';
-import { FlatList, type ListRenderItemInfo, StyleSheet, View } from 'react-native';
-import Animated, {
-  FadeInDown,
-  useAnimatedStyle,
-  withSpring,
-  ZoomIn,
-} from 'react-native-reanimated';
+import { router, useLocalSearchParams } from 'expo-router';
+import { useCallback, useMemo, useRef, useState } from 'react';
+import {
+  FlatList,
+  Keyboard,
+  type ListRenderItemInfo,
+  StyleSheet,
+  useWindowDimensions,
+  View,
+} from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
-import { CalendarIcon, CloseIcon } from '@/components/icons';
+import { CloseIcon } from '@/components/icons';
 import { AppText } from '@/components/ui/AppText';
 import { Button } from '@/components/ui/Button';
+import { Chip } from '@/components/ui/Chip';
 import { IconButton } from '@/components/ui/IconButton';
-import { PressableScale } from '@/components/ui/PressableScale';
+import { Sheet } from '@/components/ui/Sheet';
+import { TextField } from '@/components/ui/TextField';
+import { MINI_MONTH_HEIGHT, MiniMonth } from '@/features/calendar/MiniMonth';
+import { MonthCard } from '@/features/calendar/MonthCard';
+import { parseMonthQuery } from '@/features/calendar/monthQuery';
+import { type MonthInfo, monthsOfYear } from '@/features/calendar/months';
 import {
   addDaysISO,
-  fromISODate,
+  isISODate,
   type ISODate,
   parseCellKey,
-  startOfWeekISO,
   todayISO,
-  toISODate,
-  WEEKDAY_KO,
-  weekDates,
   weekRangeLabel,
 } from '@/lib/date';
-import { tapHaptic } from '@/lib/haptics';
+import { successHaptic, tapHaptic } from '@/lib/haptics';
 import { useActiveWorkers, useCells, useEvents } from '@/store/selectors';
 import type { CalendarEvent, CellValue } from '@/store/types';
+import { useAppStore } from '@/store/useAppStore';
 import { useWeekView } from '@/store/useWeekView';
-import { colors, fonts, radius, spacing } from '@/theme/tokens';
+import { colors, spacing } from '@/theme/tokens';
 
-/** 앞뒤로 몇 달까지 한 번에 스크롤할 수 있게 둘지 (2년 + 2년) */
-const MONTHS_BACK = 24;
-const MONTHS_AHEAD = 24;
-const ROW_H = 48;
-const TITLE_H = 44;
-const WEEKDAY_H = 22;
-const CARD_PAD = 12;
-const CARD_BORDER = 1;
-const CARD_GAP = 12;
+/** 올해 기준 앞뒤 2년 */
+const YEARS_AROUND = 2;
+const COLUMNS = 3;
+const GAP = 10;
+const YEAR_H = 36;
+const MONTHS_ROW_H = MINI_MONTH_HEIGHT + GAP;
 const MAX_DOTS = 3;
-const SPRING = { damping: 18, stiffness: 190, mass: 0.9 };
 
-interface MonthItem {
-  /** 그 달 1일 */
-  key: ISODate;
-  /** 각 주의 일요일 */
-  weeks: ISODate[];
-  height: number;
-  offset: number;
-}
+type Row =
+  | { type: 'year'; key: string; year: number }
+  | { type: 'months'; key: string; year: number; months: MonthInfo[] };
 
-function buildMonths(center: Date): MonthItem[] {
-  const items: MonthItem[] = [];
-  let offset = 0;
-  for (let i = -MONTHS_BACK; i <= MONTHS_AHEAD; i++) {
-    const first = startOfMonth(addMonths(center, i));
-    const rows = Math.ceil((first.getDay() + getDaysInMonth(first)) / 7);
-    const gridStart = fromISODate(startOfWeekISO(first));
-    const weeks = Array.from({ length: rows }, (_, r) => toISODate(addDays(gridStart, r * 7)));
-    const height = CARD_BORDER * 2 + CARD_PAD * 2 + TITLE_H + WEEKDAY_H + rows * ROW_H;
-    items.push({ key: toISODate(first), weeks, height, offset });
-    offset += height + CARD_GAP;
+function buildRows(years: number[]): Row[] {
+  const rows: Row[] = [];
+  for (const year of years) {
+    rows.push({ type: 'year', key: `y-${year}`, year });
+    const months = monthsOfYear(year);
+    for (let i = 0; i < months.length; i += COLUMNS) {
+      rows.push({
+        type: 'months',
+        key: `m-${year}-${i}`,
+        year,
+        months: months.slice(i, i + COLUMNS),
+      });
+    }
   }
-  return items;
+  return rows;
 }
+
+const rowHeight = (row: Row) => (row.type === 'year' ? YEAR_H : MONTHS_ROW_H);
 
 /** 날짜별 점 색 — 출근은 초록, 상태 카드는 카드 글자색. 같은 색은 하나로, 최대 3개 */
-function buildDots(
-  cells: Record<string, CellValue>,
-  activeIds: Set<string>,
-): Map<ISODate, string[]> {
-  const map = new Map<ISODate, string[]>();
+function buildDots(cells: Record<string, CellValue>, activeIds: Set<string>) {
+  const dots = new Map<ISODate, string[]>();
+  const filled = new Set<ISODate>();
   for (const [key, cell] of Object.entries(cells)) {
     const { workerId, date } = parseCellKey(key);
     if (!activeIds.has(workerId)) continue;
+    filled.add(date);
     const color = cell.kind === 'time' ? colors.feedback.success : cell.fg;
-    const list = map.get(date) ?? [];
+    const list = dots.get(date) ?? [];
     if (!list.includes(color) && list.length < MAX_DOTS) list.push(color);
-    map.set(date, list);
+    dots.set(date, list);
   }
-  return map;
+  return { dots, filled };
 }
 
 /** 행사 기간에 든 날짜 → 띠 색 */
@@ -100,206 +97,285 @@ function buildEventDays(events: CalendarEvent[]): Map<ISODate, string> {
 }
 
 /**
- * 캘린더 페이지 — 달 카드를 세로로 쭉 넘기며(2년 전 ~ 2년 후) 원하는 주를 고른다.
- * 날짜 아래 점은 그날 들어간 근무(초록)·상태 카드 색, 행사 기간은 날짜에 띠 색이 깔린다.
+ * 캘린더 페이지 — 3열 연간 개요(앞뒤 2년)를 스크롤하고, 달을 누르면 큰 달 카드가 시트로 열린다.
+ * 기본 모드: 주를 누르면 그 주 근무표로 이동. 복사 모드(⋯ → 다른 주에서 가져오기): 고른 주를 target 주에 복사.
  */
 export default function CalendarScreen() {
-  const selected = useWeekView((s) => s.start);
+  const params = useLocalSearchParams<{ mode?: string; target?: string }>();
+  const target: ISODate | null =
+    params.mode === 'copy' && isISODate(params.target) ? params.target : null;
+  const copyMode = target !== null;
+
+  const viewing = useWeekView((s) => s.start);
   const go = useWeekView((s) => s.go);
+  const copyWeek = useAppStore((s) => s.copyWeek);
   const workers = useActiveWorkers();
   const cells = useCells();
   const events = useEvents();
-  const today = useMemo(() => todayISO(), []);
-  const listRef = useRef<FlatList<MonthItem>>(null);
-  const closing = useRef(false);
+  const { width: screenWidth } = useWindowDimensions();
 
-  const months = useMemo(() => buildMonths(fromISODate(today)), [today]);
+  const today = useMemo(() => todayISO(), []);
+  const todayYear = Number(today.slice(0, 4));
+  const years = useMemo(
+    () => Array.from({ length: YEARS_AROUND * 2 + 1 }, (_, i) => todayYear - YEARS_AROUND + i),
+    [todayYear],
+  );
+  const rows = useMemo(() => buildRows(years), [years]);
+  const offsets = useMemo(() => {
+    let o = 0;
+    return rows.map((r) => {
+      const cur = o;
+      o += rowHeight(r);
+      return cur;
+    });
+  }, [rows]);
+  const yearIndices = useMemo(
+    () => rows.map((r, i) => (r.type === 'year' ? i : -1)).filter((i) => i >= 0),
+    [rows],
+  );
+
   const activeIds = useMemo(() => new Set(workers.map((w) => w.id)), [workers]);
-  const dots = useMemo(() => buildDots(cells, activeIds), [cells, activeIds]);
+  const { dots, filled } = useMemo(() => buildDots(cells, activeIds), [cells, activeIds]);
   const eventDays = useMemo(() => buildEventDays(events), [events]);
 
-  const monthIndexOf = useCallback(
-    (iso: ISODate) => {
-      const key = toISODate(startOfMonth(fromISODate(iso)));
-      return Math.max(
-        0,
-        months.findIndex((m) => m.key === key),
-      );
-    },
-    [months],
-  );
-  // 주 가운데(수요일)가 속한 달부터 보여준다
-  const initialIndex = useMemo(
-    () => monthIndexOf(addDaysISO(selected, 3)),
-    [monthIndexOf, selected],
-  );
+  const listRef = useRef<FlatList<Row>>(null);
+  const closing = useRef(false);
+  const [query, setQuery] = useState('');
+  const [searchError, setSearchError] = useState<string | null>(null);
+  const [highlightKey, setHighlightKey] = useState<string | null>(null);
+  const [openMonth, setOpenMonth] = useState<MonthInfo | null>(null);
+  const [picked, setPicked] = useState<ISODate | null>(null);
 
-  const pickWeek = useCallback(
-    (weekStart: ISODate) => {
-      if (closing.current) return;
-      tapHaptic();
-      go(weekStart);
-      closing.current = true;
-      // 선택 표시가 스프링으로 옮겨가는 걸 잠깐 보여준 뒤 닫는다
-      setTimeout(() => router.back(), 260);
-    },
-    [go],
+  const miniWidth = (Math.min(screenWidth, 520) - spacing.lg * 2 - GAP * (COLUMNS - 1)) / COLUMNS;
+
+  const rowIndexOfMonth = useCallback(
+    (year: number, month: number) =>
+      rows.findIndex(
+        (r) => r.type === 'months' && r.months.some((m) => m.year === year && m.month === month),
+      ),
+    [rows],
   );
+  // 달 행은 고정된 연도 헤더 아래로 오게 viewOffset을 준다
+  const scrollToIndex = useCallback(
+    (index: number, animated = true) => {
+      if (index < 0) return;
+      const viewOffset = rows[index]?.type === 'months' ? YEAR_H : 0;
+      listRef.current?.scrollToIndex({ index, animated, viewPosition: 0, viewOffset });
+    },
+    [rows],
+  );
+  const flash = useCallback((key: string) => {
+    setHighlightKey(key);
+    setTimeout(() => setHighlightKey((k) => (k === key ? null : k)), 1600);
+  }, []);
+
+  // 처음엔 보고 있는 주(복사 모드면 복사 받을 주)의 달이 보이게
+  const anchor = target ?? viewing;
+  const initialIndex = useMemo(() => {
+    const mid = addDaysISO(anchor, 3);
+    return Math.max(0, rowIndexOfMonth(Number(mid.slice(0, 4)), Number(mid.slice(5, 7))));
+  }, [anchor, rowIndexOfMonth]);
+  const didInitialScroll = useRef(false);
+  const onListLayout = useCallback(() => {
+    if (didInitialScroll.current) return;
+    didInitialScroll.current = true;
+    scrollToIndex(initialIndex, false);
+  }, [initialIndex, scrollToIndex]);
+
+  const onSearch = useCallback(() => {
+    const q = parseMonthQuery(query);
+    if (!q) {
+      setSearchError('예: 2027 3, 2027년 3월, 3월');
+      return;
+    }
+    const year = q.year ?? Number(anchor.slice(0, 4));
+    if (!years.includes(year)) {
+      setSearchError(`${years[0]}년 ~ ${years[years.length - 1]}년 사이만 볼 수 있어요`);
+      return;
+    }
+    Keyboard.dismiss();
+    tapHaptic();
+    if (q.month) {
+      scrollToIndex(rowIndexOfMonth(year, q.month));
+      flash(`${year}-${q.month}`);
+    } else {
+      scrollToIndex(rows.findIndex((r) => r.type === 'year' && r.year === year));
+    }
+  }, [query, anchor, years, rows, rowIndexOfMonth, scrollToIndex, flash]);
 
   const scrollToToday = useCallback(() => {
     tapHaptic();
-    listRef.current?.scrollToIndex({ index: monthIndexOf(today), animated: true });
-  }, [monthIndexOf, today]);
+    scrollToIndex(rowIndexOfMonth(todayYear, Number(today.slice(5, 7))));
+    flash(`${todayYear}-${Number(today.slice(5, 7))}`);
+  }, [flash, rowIndexOfMonth, scrollToIndex, today, todayYear]);
+
+  const openMonthSheet = useCallback((info: MonthInfo) => {
+    tapHaptic();
+    setOpenMonth(info);
+  }, []);
+  const closeMonthSheet = useCallback(() => {
+    setOpenMonth(null);
+    setPicked(null);
+  }, []);
+
+  const finish = useCallback((after: () => void) => {
+    if (closing.current) return;
+    closing.current = true;
+    after();
+    setOpenMonth(null);
+    // 시트가 내려가는 걸 잠깐 보여준 뒤 닫는다
+    setTimeout(() => router.back(), 220);
+  }, []);
+
+  const onPickWeek = useCallback(
+    (weekStart: ISODate) => {
+      tapHaptic();
+      if (copyMode) {
+        if (weekStart !== target) setPicked(weekStart);
+        return;
+      }
+      finish(() => go(weekStart));
+    },
+    [copyMode, target, finish, go],
+  );
+
+  const confirmCopy = useCallback(() => {
+    if (!target || !picked) return;
+    finish(() => {
+      copyWeek(picked, target);
+      successHaptic();
+    });
+  }, [target, picked, finish, copyWeek]);
 
   const renderItem = useCallback(
-    ({ item }: ListRenderItemInfo<MonthItem>) => (
-      <MonthCard
-        item={item}
-        selected={selected}
-        today={today}
-        dots={dots}
-        eventDays={eventDays}
-        onPickWeek={pickWeek}
-      />
-    ),
-    [selected, today, dots, eventDays, pickWeek],
+    ({ item }: ListRenderItemInfo<Row>) => {
+      if (item.type === 'year') {
+        return (
+          <View style={styles.yearRow}>
+            <AppText variant="heading">{item.year}년</AppText>
+          </View>
+        );
+      }
+      return (
+        <View style={styles.monthsRow}>
+          {item.months.map((m) => (
+            <MiniMonth
+              key={m.key}
+              info={m}
+              width={miniWidth}
+              today={today}
+              selectedWeek={copyMode ? picked : viewing}
+              filledDays={filled}
+              eventDays={eventDays}
+              highlighted={highlightKey === `${m.year}-${m.month}`}
+              onPress={openMonthSheet}
+            />
+          ))}
+        </View>
+      );
+    },
+    [miniWidth, today, copyMode, picked, viewing, filled, eventDays, highlightKey, openMonthSheet],
   );
+
+  const sheetFooter = copyMode ? (
+    picked ? (
+      <Button
+        title={`${weekRangeLabel(picked)} → ${weekRangeLabel(target)} 복사`}
+        variant="primary"
+        size="lg"
+        onPress={confirmCopy}
+        style={styles.footerButton}
+      />
+    ) : (
+      <AppText variant="caption" color={colors.text.secondary} style={styles.footerHint}>
+        복사할 주를 눌러 주세요. 점선 주가 복사 받을 주예요.
+      </AppText>
+    )
+  ) : undefined;
 
   return (
     <SafeAreaView style={styles.safe} edges={['top', 'left', 'right', 'bottom']}>
       <View style={styles.header}>
         <Button title="오늘" size="sm" variant="secondary" onPress={scrollToToday} />
         <View style={styles.headerCenter}>
-          <AppText variant="title">캘린더</AppText>
+          <AppText variant="title">{copyMode ? '복사할 주 선택' : '캘린더'}</AppText>
           <AppText variant="caption" color={colors.text.secondary}>
-            주를 누르면 그 주 근무표로 가요
+            {copyMode
+              ? `고른 주 근무표를 ${weekRangeLabel(target)} 주에 넣어요`
+              : '달을 누른 뒤 주를 고르면 그 주로 가요'}
           </AppText>
         </View>
         <IconButton onPress={() => router.back()} accessibilityLabel="닫기">
           <CloseIcon />
         </IconButton>
       </View>
+
+      <View style={styles.search}>
+        <TextField
+          value={query}
+          onChangeText={(t) => {
+            setQuery(t);
+            setSearchError(null);
+          }}
+          placeholder="년도·월로 찾기 (예: 2027 3, 3월)"
+          returnKeyType="search"
+          onSubmitEditing={onSearch}
+          error={searchError}
+          accessibilityLabel="년도·월 검색"
+        />
+        <View style={styles.yearChips}>
+          {years.map((y) => (
+            <Chip
+              key={y}
+              label={`${y}년`}
+              size="sm"
+              onPress={() => {
+                tapHaptic();
+                scrollToIndex(rows.findIndex((r) => r.type === 'year' && r.year === y));
+              }}
+            />
+          ))}
+        </View>
+      </View>
+
       <FlatList
         ref={listRef}
-        data={months}
-        keyExtractor={(m) => m.key}
+        data={rows}
+        keyExtractor={(r) => r.key}
         renderItem={renderItem}
         getItemLayout={(_, index) => ({
-          length: months[index].height + CARD_GAP,
-          offset: months[index].offset,
+          length: rowHeight(rows[index]),
+          offset: offsets[index],
           index,
         })}
-        initialScrollIndex={initialIndex}
-        ItemSeparatorComponent={Separator}
+        onLayout={onListLayout}
+        stickyHeaderIndices={yearIndices}
         contentContainerStyle={styles.list}
         showsVerticalScrollIndicator={false}
-        initialNumToRender={3}
-        windowSize={5}
+        initialNumToRender={6}
+        windowSize={7}
+        keyboardShouldPersistTaps="handled"
       />
+
+      <Sheet
+        visible={!!openMonth}
+        onClose={closeMonthSheet}
+        title={openMonth ? `${openMonth.year}년 ${openMonth.month}월` : ''}
+        subtitle={copyMode ? '복사할 주를 누르세요' : '주를 누르면 그 주 근무표로 가요'}
+        footer={sheetFooter}>
+        {openMonth ? (
+          <MonthCard
+            info={openMonth}
+            today={today}
+            highlightWeek={copyMode ? picked : viewing}
+            outlineWeek={target}
+            dots={dots}
+            eventDays={eventDays}
+            onPickWeek={onPickWeek}
+          />
+        ) : null}
+      </Sheet>
     </SafeAreaView>
-  );
-}
-
-function Separator() {
-  return <View style={styles.separator} />;
-}
-
-interface MonthCardProps {
-  item: MonthItem;
-  selected: ISODate;
-  today: ISODate;
-  dots: Map<ISODate, string[]>;
-  eventDays: Map<ISODate, string>;
-  onPickWeek: (weekStart: ISODate) => void;
-}
-
-const MonthCard = memo(function MonthCard({
-  item,
-  selected,
-  today,
-  dots,
-  eventDays,
-  onPickWeek,
-}: MonthCardProps) {
-  const first = fromISODate(item.key);
-  const monthPrefix = item.key.slice(0, 7);
-  const selectedRow = item.weeks.indexOf(selected);
-  return (
-    <Animated.View
-      entering={FadeInDown.springify().damping(18).stiffness(160).mass(0.9)}
-      style={[styles.card, { height: item.height }]}>
-      <View style={styles.cardTitle}>
-        <CalendarIcon size={18} color={colors.text.secondary} />
-        <AppText variant="heading">{format(first, 'yyyy년 M월')}</AppText>
-      </View>
-      <View style={styles.weekdays}>
-        {WEEKDAY_KO.map((d, i) => (
-          <View key={d} style={styles.weekdayCell}>
-            <AppText
-              variant="caption"
-              color={
-                i === 0 ? colors.weekday.sun : i === 6 ? colors.weekday.sat : colors.text.tertiary
-              }>
-              {d}
-            </AppText>
-          </View>
-        ))}
-      </View>
-      <View>
-        {selectedRow >= 0 ? <SelectionPill row={selectedRow} /> : null}
-        {item.weeks.map((weekStart) => (
-          <PressableScale
-            key={weekStart}
-            scaleTo={0.97}
-            onPress={() => onPickWeek(weekStart)}
-            accessibilityRole="button"
-            accessibilityLabel={`${weekRangeLabel(weekStart)} 주로 이동`}
-            accessibilityState={{ selected: weekStart === selected }}
-            style={styles.weekRow}>
-            {weekDates(weekStart).map((iso) => {
-              if (!iso.startsWith(monthPrefix)) return <View key={iso} style={styles.dayCell} />;
-              const isToday = iso === today;
-              const eventColor = eventDays.get(iso);
-              return (
-                <View key={iso} style={styles.dayCell}>
-                  <View
-                    style={[
-                      styles.dayBadge,
-                      isToday && styles.todayBadge,
-                      !isToday && !!eventColor && { backgroundColor: eventColor },
-                    ]}>
-                    <AppText
-                      style={[styles.dayText, isToday && styles.dayTextToday]}
-                      color={isToday ? colors.text.inverse : colors.text.primary}>
-                      {Number(iso.slice(8, 10))}
-                    </AppText>
-                  </View>
-                  <View style={styles.dots}>
-                    {(dots.get(iso) ?? []).map((c) => (
-                      <View key={c} style={[styles.dot, { backgroundColor: c }]} />
-                    ))}
-                  </View>
-                </View>
-              );
-            })}
-          </PressableScale>
-        ))}
-      </View>
-    </Animated.View>
-  );
-});
-
-/** 선택한 주 뒤에 깔리는 라벤더 알약 — 행이 바뀌면 스프링으로 미끄러진다 */
-function SelectionPill({ row }: { row: number }) {
-  const animatedStyle = useAnimatedStyle(() => ({
-    transform: [{ translateY: withSpring(row * ROW_H, SPRING) }],
-  }));
-  return (
-    <Animated.View
-      pointerEvents="none"
-      entering={ZoomIn.springify().damping(16).stiffness(220)}
-      style={[styles.pill, animatedStyle]}
-    />
   );
 }
 
@@ -312,48 +388,12 @@ const styles = StyleSheet.create({
     paddingHorizontal: spacing.lg,
     paddingVertical: spacing.sm,
   },
-  headerCenter: { alignItems: 'center', gap: 2 },
-  list: { paddingHorizontal: spacing.lg, paddingTop: spacing.xs, paddingBottom: spacing.xxl },
-  separator: { height: CARD_GAP },
-  card: {
-    backgroundColor: colors.surface.card,
-    borderRadius: radius.lg,
-    borderWidth: CARD_BORDER,
-    borderColor: colors.surface.border,
-    padding: CARD_PAD,
-    overflow: 'hidden',
-  },
-  cardTitle: {
-    height: TITLE_H,
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    gap: 6,
-  },
-  weekdays: { height: WEEKDAY_H, flexDirection: 'row' },
-  weekdayCell: { flex: 1, alignItems: 'center', justifyContent: 'center' },
-  pill: {
-    position: 'absolute',
-    left: 0,
-    right: 0,
-    top: 0,
-    height: ROW_H,
-    borderRadius: radius.md,
-    backgroundColor: colors.brand.primarySoft,
-  },
-  weekRow: { flexDirection: 'row', height: ROW_H },
-  dayCell: { flex: 1, alignItems: 'center', justifyContent: 'center', gap: 3 },
-  dayBadge: {
-    minWidth: 28,
-    height: 28,
-    borderRadius: 14,
-    alignItems: 'center',
-    justifyContent: 'center',
-    paddingHorizontal: 6,
-  },
-  todayBadge: { backgroundColor: colors.brand.primary },
-  dayText: { fontFamily: fonts.medium, fontSize: 15, lineHeight: 18 },
-  dayTextToday: { fontFamily: fonts.bold },
-  dots: { flexDirection: 'row', gap: 3, height: 5 },
-  dot: { width: 5, height: 5, borderRadius: 2.5 },
+  headerCenter: { alignItems: 'center', gap: 2, flex: 1, paddingHorizontal: spacing.sm },
+  search: { paddingHorizontal: spacing.lg, gap: spacing.sm, paddingBottom: spacing.xs },
+  yearChips: { flexDirection: 'row', flexWrap: 'wrap', gap: spacing.xs },
+  list: { paddingHorizontal: spacing.lg, paddingBottom: spacing.xxl },
+  yearRow: { height: YEAR_H, justifyContent: 'center', backgroundColor: colors.surface.bg },
+  monthsRow: { flexDirection: 'row', gap: GAP, height: MONTHS_ROW_H, alignItems: 'flex-start' },
+  footerButton: { flex: 1 },
+  footerHint: { flex: 1, textAlign: 'center' },
 });

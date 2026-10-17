@@ -28,7 +28,7 @@ export interface WeekGridProps {
   transition?: 0 | 1 | -1;
 }
 
-/** 행사 띠 → 노란 날짜 헤더 → 근무자 행. 엑셀 근무표와 같은 구조 */
+/** 행사 띠(카드 위) → 날짜 헤더 → 근무자 행이 한 카드. 엑셀 근무표와 같은 구조 */
 export function WeekGrid({
   weekStart,
   today,
@@ -46,50 +46,52 @@ export function WeekGrid({
   const lanes = useMemo(() => layoutEventLanes(events, weekStart), [events, weekStart]);
 
   return (
-    <View style={[styles.card, { width: metrics.tableWidth + 2 }]}>
+    <View style={[styles.wrap, { width: metrics.tableWidth + 2 }]}>
       <EventBands
         items={lanes.items}
         laneCount={lanes.laneCount}
         metrics={metrics}
         onPressEvent={onPressEvent}
       />
-      <DayHeaderRow dates={dates} today={today} metrics={metrics} />
-      <ScrollView
-        bounces={false}
-        contentContainerStyle={styles.body}
-        showsVerticalScrollIndicator={false}>
-        <Animated.View
-          key={weekStart}
-          entering={
-            transition === 0
-              ? undefined
-              : transition > 0
-                ? FadeInRight.duration(220)
-                : FadeInLeft.duration(220)
-          }>
-          {workers.length === 0
-            ? emptyContent
-            : workers.map((worker) => (
-                <WorkerRow
-                  key={worker.id}
-                  worker={worker}
-                  dates={dates}
-                  cells={cells}
-                  today={today}
-                  timeStyle={timeStyle}
-                  metrics={metrics}
-                  onPressCell={onPressCell}
-                />
-              ))}
-        </Animated.View>
-      </ScrollView>
+      <View style={styles.card}>
+        <DayHeaderRow dates={dates} today={today} metrics={metrics} />
+        <ScrollView
+          bounces={false}
+          contentContainerStyle={styles.body}
+          showsVerticalScrollIndicator={false}>
+          <Animated.View
+            key={weekStart}
+            entering={
+              transition === 0
+                ? undefined
+                : transition > 0
+                  ? FadeInRight.duration(220)
+                  : FadeInLeft.duration(220)
+            }>
+            {workers.length === 0
+              ? emptyContent
+              : workers.map((worker) => (
+                  <WorkerRow
+                    key={worker.id}
+                    worker={worker}
+                    dates={dates}
+                    cells={cells}
+                    today={today}
+                    timeStyle={timeStyle}
+                    metrics={metrics}
+                    onPressCell={onPressCell}
+                  />
+                ))}
+          </Animated.View>
+        </ScrollView>
+      </View>
     </View>
   );
 }
 
 const styles = StyleSheet.create({
+  wrap: { alignSelf: 'center', flexShrink: 1 },
   card: {
-    alignSelf: 'center',
     backgroundColor: colors.surface.card,
     borderRadius: radius.md,
     borderWidth: 1,

@@ -43,17 +43,32 @@ export const colors = {
   },
 } as const;
 
-/** 커스텀 카드 색 선택지 (배경/글자 쌍). 8종 — 파스텔 배경 + 진한 글자 */
+/**
+ * 커스텀 카드 색 선택지 8종 — 파스텔 배경 두 색을 살짝 섞은 그라데이션(bg → bg2) + 진한 글자.
+ * 이웃한 톤끼리 묶어(노랑→살구, 분홍→라벤더 …) 표 안에서 서로 어울리게.
+ */
 export const cardPalette = [
-  { key: 'yellow', name: '노랑', bg: '#FFF1B8', fg: '#8A6400' },
-  { key: 'orange', name: '살구', bg: '#FFE6CC', fg: '#B35A0B' },
-  { key: 'pink', name: '분홍', bg: '#FDE1F0', fg: '#C22A7A' },
-  { key: 'green', name: '연두', bg: '#E6F5CF', fg: '#4A7A14' },
-  { key: 'blue', name: '하늘', bg: '#DAEBFF', fg: '#1D5FC9' },
-  { key: 'purple', name: '라벤더', bg: '#EADFFB', fg: '#5E33C2' },
-  { key: 'mint', name: '민트', bg: '#D8F3EA', fg: '#107A5E' },
-  { key: 'gray', name: '회색', bg: '#ECEAE4', fg: '#6F6B63' },
+  { key: 'yellow', name: '노랑', bg: '#FFF1B8', bg2: '#FFE2B4', fg: '#8A6400' },
+  { key: 'orange', name: '살구', bg: '#FFE6CC', bg2: '#FFD9DE', fg: '#B35A0B' },
+  { key: 'pink', name: '분홍', bg: '#FDE1F0', bg2: '#EEDDFB', fg: '#C22A7A' },
+  { key: 'green', name: '연두', bg: '#E6F5CF', bg2: '#D6F2E6', fg: '#4A7A14' },
+  { key: 'blue', name: '하늘', bg: '#DAEBFF', bg2: '#E6E3FF', fg: '#1D5FC9' },
+  { key: 'purple', name: '라벤더', bg: '#EADFFB', bg2: '#D9E8FF', fg: '#5E33C2' },
+  { key: 'mint', name: '민트', bg: '#D8F3EA', bg2: '#D9EAFF', fg: '#107A5E' },
+  { key: 'gray', name: '회색', bg: '#ECEAE4', bg2: '#E3E5EE', fg: '#6F6B63' },
 ] as const;
+
+/** 화면 요소용 두 색 섞기 */
+export const gradients = {
+  /** 날짜 헤더 — 라벤더 → 하늘 */
+  header: ['#E9E7FF', '#DCEAFF'],
+  /** 온보딩 히어로 — 라벤더 → 분홍 */
+  hero: ['#E9E7FF', '#FBDCEE'],
+  /** 선택한 주 — 라벤더 → 하늘 */
+  selection: ['#E6E5FF', '#DDEBFF'],
+  /** 고래잇 행사 띠 기본 — 노랑 → 살구 */
+  event: ['#FFE38A', '#FFD2A8'],
+} as const satisfies Record<string, readonly [string, string]>;
 
 export type CardPaletteKey = (typeof cardPalette)[number]['key'];
 

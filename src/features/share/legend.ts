@@ -4,6 +4,7 @@ import type { CellValue, Worker } from '@/store/types';
 export interface LegendItem {
   label: string;
   bg: string;
+  bg2?: string;
   fg: string;
 }
 
@@ -19,7 +20,8 @@ export function collectLegend(
       const value = cells[cellKey(worker.id, date)];
       if (!value || value.kind !== 'status') continue;
       const key = `${value.label}|${value.bg}|${value.fg}`;
-      if (!seen.has(key)) seen.set(key, { label: value.label, bg: value.bg, fg: value.fg });
+      if (!seen.has(key))
+        seen.set(key, { label: value.label, bg: value.bg, bg2: value.bg2, fg: value.fg });
     }
   }
   return [...seen.values()];

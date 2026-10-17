@@ -137,6 +137,7 @@ function CellEditor({
               key={card.id}
               label={formatTimeRange(card.time ?? card.label, card.endTime, timeStyle)}
               bg={card.bg}
+              bg2={card.bg2}
               fg={card.fg}
               selected={card.id === selectedId}
               onPress={() => applyCard(card)}
@@ -193,6 +194,7 @@ function CellEditor({
               key={card.id}
               label={card.label}
               bg={card.bg}
+              bg2={card.bg2}
               fg={card.fg}
               selected={card.id === selectedId}
               onPress={() => applyCard(card)}

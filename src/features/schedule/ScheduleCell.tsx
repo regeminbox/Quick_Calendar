@@ -9,6 +9,7 @@ import Animated, {
 } from 'react-native-reanimated';
 
 import { AppText } from '@/components/ui/AppText';
+import { GradientFill } from '@/components/ui/GradientFill';
 import { formatEndTime, formatTimeLabel, formatTimeRange, type TimeStyle } from '@/lib/date';
 import type { CellValue } from '@/store/types';
 import { colors, fonts } from '@/theme/tokens';
@@ -59,7 +60,7 @@ function ScheduleCellBase({
   const popStyle = useAnimatedStyle(() => ({ transform: [{ scale: scale.value }] }));
 
   const inner = (
-    <View style={[styles.cell, { width, height, backgroundColor: bg }]}>
+    <GradientFill colors={[bg, value?.bg2]} style={[styles.cell, { width, height }]}>
       {label ? (
         <Animated.View style={[styles.content, popStyle]}>
           {start && end ? (
@@ -93,7 +94,7 @@ function ScheduleCellBase({
           )}
         </Animated.View>
       ) : null}
-    </View>
+    </GradientFill>
   );
   if (!onPress) return inner;
   return (

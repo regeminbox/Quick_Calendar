@@ -5,9 +5,14 @@ import { SparkleIcon } from '@/components/icons';
 import { AppText } from '@/components/ui/AppText';
 import { Button } from '@/components/ui/Button';
 import { Chip } from '@/components/ui/Chip';
+import { GradientFill } from '@/components/ui/GradientFill';
 import { Sheet } from '@/components/ui/Sheet';
 import { TextField } from '@/components/ui/TextField';
-import { EVENT_DEFAULT_COLOR, GORAEIT_EVENT_TITLE } from '@/features/cards/defaultCards';
+import {
+  EVENT_DEFAULT_COLOR,
+  EVENT_DEFAULT_COLOR2,
+  GORAEIT_EVENT_TITLE,
+} from '@/features/cards/defaultCards';
 import { confirmAsync } from '@/lib/confirm';
 import { dateLabel, fromISODate, type ISODate, todayISO, weekDates } from '@/lib/date';
 import { successHaptic } from '@/lib/haptics';
@@ -26,14 +31,14 @@ export interface EventSheetProps {
 }
 
 const TITLE_PRESETS = [GORAEIT_EVENT_TITLE, '고래잇 페스타', '재고조사'];
-/** 띠 색 — 파스텔 톤 (글자는 항상 진한 색) */
+/** 띠 색 — 파스텔 두 색을 살짝 섞는다 (글자는 항상 진한 색) */
 const COLORS = [
-  { key: 'yellow', name: '노랑', value: EVENT_DEFAULT_COLOR },
-  { key: 'peach', name: '살구', value: '#FFDFBF' },
-  { key: 'green', name: '연두', value: '#DDF2BF' },
-  { key: 'sky', name: '하늘', value: '#CFE4FF' },
-  { key: 'pink', name: '분홍', value: '#FBD6EA' },
-  { key: 'lavender', name: '라벤더', value: '#E2D6FB' },
+  { key: 'yellow', name: '노랑', value: EVENT_DEFAULT_COLOR, value2: EVENT_DEFAULT_COLOR2 },
+  { key: 'peach', name: '살구', value: '#FFDFBF', value2: '#FBD6EA' },
+  { key: 'green', name: '연두', value: '#DDF2BF', value2: '#CFEFE1' },
+  { key: 'sky', name: '하늘', value: '#CFE4FF', value2: '#E2D6FB' },
+  { key: 'pink', name: '분홍', value: '#FBD6EA', value2: '#E2D6FB' },
+  { key: 'lavender', name: '라벤더', value: '#E2D6FB', value2: '#CFE4FF' },
 ];
 
 /** 날짜 헤더 위 띠(행사) 추가/수정 — 제목·기간·색·★ */
@@ -88,6 +93,9 @@ function EventForm({
       : defaultRange(state.mode === 'new' ? state.weekStart : todayISO()),
   );
   const [color, setColor] = useState(event?.color ?? EVENT_DEFAULT_COLOR);
+  const [color2, setColor2] = useState<string | undefined>(
+    event ? event.color2 : EVENT_DEFAULT_COLOR2,
+  );
   const [star, setStar] = useState(event ? event.icon === 'star' : true);
 
   const save = () => {
@@ -97,6 +105,7 @@ function EventForm({
       start: range.start,
       end: range.end,
       color,
+      color2,
       icon: star ? 'star' : 'none',
     });
     successHaptic();
@@ -158,18 +167,19 @@ function EventForm({
           {COLORS.map((c) => (
             <Pressable
               key={c.key}
-              onPress={() => setColor(c.value)}
+              onPress={() => {
+                setColor(c.value);
+                setColor2(c.value2);
+              }}
               accessibilityRole="button"
               accessibilityLabel={c.name}
               accessibilityState={{ selected: color === c.value }}
               style={[
                 styles.swatch,
-                {
-                  backgroundColor: c.value,
-                  borderColor: color === c.value ? colors.text.primary : colors.surface.border,
-                },
-              ]}
-            />
+                { borderColor: color === c.value ? colors.brand.primary : colors.surface.border },
+              ]}>
+              <GradientFill colors={[c.value, c.value2]} style={styles.swatchFill} />
+            </Pressable>
           ))}
         </View>
       </View>
@@ -203,7 +213,8 @@ const styles = StyleSheet.create({
   rangeRow: { gap: 2 },
   rangeText: { fontSize: 15 },
   swatches: { flexDirection: 'row', gap: spacing.sm },
-  swatch: { width: 36, height: 36, borderRadius: 18, borderWidth: 2 },
+  swatch: { width: 36, height: 36, borderRadius: 18, borderWidth: 2, overflow: 'hidden' },
+  swatchFill: { position: 'absolute', top: 0, left: 0, right: 0, bottom: 0 },
   switchRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
   switchText: { flexDirection: 'row', alignItems: 'center', gap: spacing.sm },
   buttons: { flexDirection: 'row', gap: spacing.sm, alignItems: 'center' },

@@ -6,11 +6,14 @@ import { CheckIcon } from '@/components/icons';
 import { colors, fonts, radius } from '@/theme/tokens';
 
 import { AppText } from './AppText';
+import { GradientFill } from './GradientFill';
 import { PressableScale } from './PressableScale';
 
 export interface ChipProps {
   label: string;
   bg?: string;
+  /** 그라데이션 끝색 (없으면 단색) */
+  bg2?: string;
   fg?: string;
   selected?: boolean;
   dashed?: boolean;
@@ -24,6 +27,7 @@ export interface ChipProps {
 export function Chip({
   label,
   bg = colors.surface.card,
+  bg2,
   fg = colors.text.primary,
   selected = false,
   dashed = false,
@@ -51,6 +55,7 @@ export function Chip({
           opacity: pressed ? 0.85 : 1,
         },
       ]}>
+      {bg2 ? <GradientFill colors={[bg, bg2]} style={styles.fill} /> : null}
       {icon}
       <AppText style={[styles.label, size === 'sm' && styles.labelSm]} color={fg}>
         {label}
@@ -73,7 +78,9 @@ const styles = StyleSheet.create({
     paddingHorizontal: 14,
     borderRadius: radius.pill,
     borderWidth: 2,
+    overflow: 'hidden',
   },
+  fill: { position: 'absolute', top: 0, left: 0, right: 0, bottom: 0 },
   sm: { height: 32, paddingHorizontal: 12 },
   label: { fontFamily: fonts.semibold, fontSize: 14, lineHeight: 18 },
   labelSm: { fontSize: 13, lineHeight: 16 },

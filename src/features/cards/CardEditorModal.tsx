@@ -5,6 +5,7 @@ import Animated, { FadeIn } from 'react-native-reanimated';
 import { AppText } from '@/components/ui/AppText';
 import { Button } from '@/components/ui/Button';
 import { Chip } from '@/components/ui/Chip';
+import { GradientFill } from '@/components/ui/GradientFill';
 import { SegmentedControl } from '@/components/ui/SegmentedControl';
 import { Sheet } from '@/components/ui/Sheet';
 import { TextField } from '@/components/ui/TextField';
@@ -120,6 +121,7 @@ function CardForm({
         kind: 'status',
         label: text,
         bg: palette.bg,
+        bg2: palette.bg2,
         fg: palette.fg,
         order: initial?.order,
         builtIn: initial?.builtIn,
@@ -190,11 +192,9 @@ function CardForm({
                       accessibilityState={{ selected: active }}
                       style={[
                         styles.swatch,
-                        {
-                          backgroundColor: p.bg,
-                          borderColor: active ? colors.text.primary : colors.surface.border,
-                        },
+                        { borderColor: active ? colors.brand.primary : colors.surface.border },
                       ]}>
+                      <GradientFill colors={[p.bg, p.bg2]} style={styles.swatchFill} />
                       <View style={[styles.swatchDot, { backgroundColor: p.fg }]} />
                     </Pressable>
                   );
@@ -213,6 +213,7 @@ function CardForm({
           <Chip
             label={previewLabel}
             bg={kind === 'time' ? colors.surface.card : palette.bg}
+            bg2={kind === 'time' ? undefined : palette.bg2}
             fg={kind === 'time' ? colors.text.primary : palette.fg}
           />
         </View>
@@ -239,7 +240,9 @@ const styles = StyleSheet.create({
     borderWidth: 2,
     alignItems: 'center',
     justifyContent: 'center',
+    overflow: 'hidden',
   },
+  swatchFill: { position: 'absolute', top: 0, left: 0, right: 0, bottom: 0 },
   swatchDot: { width: 12, height: 12, borderRadius: 6 },
   previewRow: { flexDirection: 'row' },
   buttons: { flexDirection: 'row', gap: spacing.sm, alignItems: 'center' },

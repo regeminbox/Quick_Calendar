@@ -1,6 +1,7 @@
+import { router } from 'expo-router';
 import { StyleSheet, View } from 'react-native';
 
-import { CopyIcon, EraserIcon } from '@/components/icons';
+import { CalendarIcon, CopyIcon, EraserIcon } from '@/components/icons';
 import { AppText } from '@/components/ui/AppText';
 import { Button } from '@/components/ui/Button';
 import { Sheet } from '@/components/ui/Sheet';
@@ -18,7 +19,7 @@ export interface WeekActionsSheetProps {
   onClose: () => void;
 }
 
-/** 주 단위 작업: 지난주 복사, 이번 주 비우기 */
+/** 주 단위 작업: 지난주 복사, 다른 주에서 가져오기(캘린더), 이번 주 비우기 */
 export function WeekActionsSheet({
   visible,
   weekStart,
@@ -41,6 +42,15 @@ export function WeekActionsSheet({
     copyPreviousWeek(weekStart);
     successHaptic();
     onClose();
+  };
+
+  const onPickOtherWeek = () => {
+    onClose();
+    // 시트가 닫힌 뒤 열어야 모달이 겹치지 않는다
+    setTimeout(
+      () => router.push({ pathname: '/calendar', params: { mode: 'copy', target: weekStart } }),
+      350,
+    );
   };
 
   const onClear = async () => {
@@ -71,6 +81,16 @@ export function WeekActionsSheet({
         />
         <AppText variant="caption" color={colors.text.secondary}>
           같은 패턴으로 반복되는 주에 편해요. 복사 후 바뀐 칸만 고치면 돼요.
+        </AppText>
+        <Button
+          title="다른 주에서 가져오기"
+          variant="secondary"
+          size="lg"
+          icon={<CalendarIcon size={18} />}
+          onPress={onPickOtherWeek}
+        />
+        <AppText variant="caption" color={colors.text.secondary}>
+          캘린더에서 주를 고르면 그 주 근무표가 이번 주에 그대로 복사돼요.
         </AppText>
         <Button
           title="이번 주 비우기"

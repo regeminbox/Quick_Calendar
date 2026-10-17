@@ -176,3 +176,30 @@ describe('시간 범위 셀', () => {
     });
   });
 });
+
+describe('다른 주 복사', () => {
+  it('copyWeek는 같은 요일끼리 복사하고, 원본이 빈 칸은 지운다', () => {
+    const s = useAppStore.getState();
+    const w = s.addWorker('근무자');
+    const card = useAppStore.getState().cards.find((c) => c.id === 'status_jeongil')!;
+    s.setCellTime(w, '2026-10-04', '1000'); // 10/4(일)
+    s.setCellCard(w, '2026-10-07', card); // 10/7(수)
+    s.setCellTime(w, W1, '1900'); // 대상 주 일요일 — 덮어써야 함
+    s.setCellTime(w, '2026-10-27', '1300'); // 대상 주 화요일 — 원본이 비었으니 지워져야 함
+    s.copyWeek('2026-10-04', W1);
+    const cells = useAppStore.getState().cells;
+    expect(cells[cellKey(w, W1)]).toMatchObject({ time: '1000' });
+    expect(cells[cellKey(w, '2026-10-28')]).toMatchObject({ label: '정일', bg2: card.bg2 });
+    expect(cells[cellKey(w, '2026-10-27')]).toBeUndefined();
+    // 원본은 그대로
+    expect(cells[cellKey(w, '2026-10-04')]).toMatchObject({ time: '1000' });
+  });
+
+  it('지난주 복사는 copyWeek(지난주 → 이번 주)와 같다', () => {
+    const s = useAppStore.getState();
+    const w = s.addWorker('근무자');
+    s.setCellTime(w, '2026-10-20', '1400'); // W1(10/25) 직전 주 화요일
+    s.copyPreviousWeek(W1);
+    expect(useAppStore.getState().cells[cellKey(w, '2026-10-27')]).toMatchObject({ time: '1400' });
+  });
+});

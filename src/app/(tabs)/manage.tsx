@@ -177,7 +177,13 @@ function CardsPanel({
               key={card.id}
               entering={FadeIn.duration(180)}
               layout={LinearTransition.springify().damping(18)}>
-              <Chip label={card.label} bg={card.bg} fg={card.fg} onPress={() => onEdit(card)} />
+              <Chip
+                label={card.label}
+                bg={card.bg}
+                bg2={card.bg2}
+                fg={card.fg}
+                onPress={() => onEdit(card)}
+              />
             </Animated.View>
           ))}
           <Chip

@@ -1,8 +1,9 @@
 import { StyleSheet, View } from 'react-native';
 
 import { AppText } from '@/components/ui/AppText';
+import { GradientFill } from '@/components/ui/GradientFill';
 import { dayInfo, type ISODate } from '@/lib/date';
-import { colors, fonts, radius } from '@/theme/tokens';
+import { colors, fonts, gradients } from '@/theme/tokens';
 
 import type { GridMetrics } from './useGridMetrics';
 
@@ -12,10 +13,16 @@ export interface DayHeaderRowProps {
   metrics: GridMetrics;
 }
 
-/** 엑셀처럼 색 있는 헤더(연한 라벤더): 날짜(큰 글자) + 요일(작은 글자). 일=빨강, 토=파랑, 오늘=인디고 동그라미. 좌우 끝은 카드와 같은 둥근 모서리 */
+/**
+ * 엑셀처럼 색 있는 헤더(라벤더 → 하늘 그라데이션): 날짜(큰 글자) + 요일(작은 글자).
+ * 일=빨강, 토=파랑, 오늘=인디고 동그라미. 카드 맨 위 행이라 아래 근무자 행과 한 덩어리로 이어진다.
+ */
 export function DayHeaderRow({ dates, today, metrics }: DayHeaderRowProps) {
   return (
-    <View style={[styles.row, { height: metrics.headerHeight }]}>
+    <GradientFill
+      colors={gradients.header}
+      horizontal
+      style={[styles.row, { height: metrics.headerHeight }]}>
       <View style={[styles.nameCell, { width: metrics.nameColWidth }]}>
         <AppText variant="caption" color={colors.text.secondary}>
           근무자
@@ -42,12 +49,12 @@ export function DayHeaderRow({ dates, today, metrics }: DayHeaderRowProps) {
           </View>
         );
       })}
-    </View>
+    </GradientFill>
   );
 }
 
 const styles = StyleSheet.create({
-  row: { flexDirection: 'row', backgroundColor: colors.brand.primarySoft, borderRadius: radius.md },
+  row: { flexDirection: 'row' },
   nameCell: { alignItems: 'center', justifyContent: 'center' },
   dayCell: { alignItems: 'center', justifyContent: 'center' },
   dayBadge: {

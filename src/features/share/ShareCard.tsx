@@ -2,6 +2,7 @@ import type { ComponentRef, Ref } from 'react';
 import { StyleSheet, View } from 'react-native';
 
 import { AppText } from '@/components/ui/AppText';
+import { GradientFill } from '@/components/ui/GradientFill';
 import { DayHeaderRow } from '@/features/schedule/DayHeaderRow';
 import { EventBands } from '@/features/schedule/EventBands';
 import { WorkerRow } from '@/features/schedule/WorkerRow';
@@ -71,32 +72,35 @@ export function ShareCard({
         </View>
       </View>
 
-      <View style={[styles.table, { width: metrics.tableWidth + 2 }]}>
+      <View style={[styles.tableWrap, { width: metrics.tableWidth + 2 }]}>
         <EventBands items={lanes.items} laneCount={lanes.laneCount} metrics={metrics} compact />
-        <DayHeaderRow dates={dates} today="" metrics={metrics} />
-        {workers.map((worker) => (
-          <WorkerRow
-            key={worker.id}
-            worker={worker}
-            dates={dates}
-            cells={cells}
-            today=""
-            timeStyle={timeStyle}
-            metrics={metrics}
-          />
-        ))}
+        <View style={styles.table}>
+          <DayHeaderRow dates={dates} today="" metrics={metrics} />
+          {workers.map((worker) => (
+            <WorkerRow
+              key={worker.id}
+              worker={worker}
+              dates={dates}
+              cells={cells}
+              today=""
+              timeStyle={timeStyle}
+              metrics={metrics}
+            />
+          ))}
+        </View>
       </View>
 
       <View style={styles.footer}>
         <View style={styles.legend}>
           {legend.map((item) => (
-            <View
+            <GradientFill
               key={`${item.label}-${item.bg}`}
-              style={[styles.legendChip, { backgroundColor: item.bg }]}>
+              colors={[item.bg, item.bg2]}
+              style={styles.legendChip}>
               <AppText style={styles.legendText} color={item.fg}>
                 {item.label}
               </AppText>
-            </View>
+            </GradientFill>
           ))}
           <AppText variant="caption" color={colors.text.tertiary}>
             숫자 = 출근 시각 (~퇴근)
@@ -127,8 +131,8 @@ const styles = StyleSheet.create({
     paddingVertical: 6,
   },
   badgeText: { fontFamily: fonts.bold, fontSize: 13, lineHeight: 16, color: colors.text.onPrimary },
+  tableWrap: { alignSelf: 'center' },
   table: {
-    alignSelf: 'center',
     borderRadius: radius.md,
     borderWidth: 1,
     borderColor: colors.surface.border,

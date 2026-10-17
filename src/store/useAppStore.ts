@@ -3,9 +3,9 @@ import { create } from 'zustand';
 import { createJSONStorage, persist } from 'zustand/middleware';
 
 import { buildDefaultCards, GORAEIT_EVENT_TITLE } from '@/features/cards/defaultCards';
-import { addDaysISO, cellKey, type ISODate, startOfWeekISO, todayISO, weekDates } from '@/lib/date';
+import { cellKey, type ISODate, shiftWeek, startOfWeekISO, todayISO, weekDates } from '@/lib/date';
 import { newId } from '@/lib/id';
-import { colors } from '@/theme/tokens';
+import { colors, gradients } from '@/theme/tokens';
 
 import {
   SCHEMA_VERSION,
@@ -33,6 +33,8 @@ export interface AppActions {
   upsertEvent: (event: Omit<CalendarEvent, 'id'> & { id?: string }) => string;
   deleteEvent: (id: string) => void;
   copyPreviousWeek: (weekStart: ISODate) => void;
+  /** from 주의 칸을 to 주에 그대로 복사 (to 주의 기존 칸은 덮어쓰고, from이 빈 칸은 지운다) */
+  copyWeek: (fromWeekStart: ISODate, toWeekStart: ISODate) => void;
   clearWeek: (weekStart: ISODate) => void;
   updateSettings: (patch: Partial<Settings>) => void;
   importBackup: (data: PersistedState) => void;
@@ -71,6 +73,7 @@ export function cellFromCard(card: Card): CellValue {
     time: card.time,
     endTime: card.endTime,
     bg: card.bg,
+    bg2: card.bg2,
     fg: card.fg,
   };
 }
@@ -176,7 +179,8 @@ export function buildSample(now: Date = new Date()): PersistedState {
       title: GORAEIT_EVENT_TITLE,
       start: dates[2],
       end: dates[5],
-      color: colors.brand.yellow,
+      color: gradients.event[0],
+      color2: gradients.event[1],
       icon: 'star',
     },
   ];
@@ -210,7 +214,7 @@ const safeStorage = {
 
 export const useAppStore = create<AppStore>()(
   persist(
-    (set) => ({
+    (set, get) => ({
       ...initialState(),
 
       addWorker: (name) => {
@@ -282,6 +286,7 @@ export const useAppStore = create<AppStore>()(
             start: event.start <= event.end ? event.start : event.end,
             end: event.start <= event.end ? event.end : event.start,
             color: event.color,
+            color2: event.color2,
             icon: event.icon,
           };
           const exists = s.events.some((e) => e.id === id);
@@ -293,13 +298,17 @@ export const useAppStore = create<AppStore>()(
       },
       deleteEvent: (id) => set((s) => ({ events: s.events.filter((e) => e.id !== id) })),
 
-      copyPreviousWeek: (weekStart) =>
+      copyPreviousWeek: (weekStart) => get().copyWeek(shiftWeek(weekStart, -1), weekStart),
+      copyWeek: (fromWeekStart, toWeekStart) =>
         set((s) => {
+          if (fromWeekStart === toWeekStart) return {};
           const cells = { ...s.cells };
+          const srcDates = weekDates(fromWeekStart);
+          const dstDates = weekDates(toWeekStart);
           for (const w of s.workers) {
-            for (const date of weekDates(weekStart)) {
-              const src = s.cells[cellKey(w.id, addDaysISO(date, -7))];
-              const key = cellKey(w.id, date);
+            for (let i = 0; i < 7; i++) {
+              const src = s.cells[cellKey(w.id, srcDates[i])];
+              const key = cellKey(w.id, dstDates[i]);
               if (src) cells[key] = { ...src };
               else delete cells[key];
             }

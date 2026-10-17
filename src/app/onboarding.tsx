@@ -13,6 +13,7 @@ import {
 } from '@/components/icons';
 import { AppText } from '@/components/ui/AppText';
 import { Button } from '@/components/ui/Button';
+import { GradientFill } from '@/components/ui/GradientFill';
 import { Chip } from '@/components/ui/Chip';
 import { IconButton } from '@/components/ui/IconButton';
 import { TextField } from '@/components/ui/TextField';
@@ -25,7 +26,7 @@ import { weekDates } from '@/lib/date';
 import { successHaptic, tapHaptic } from '@/lib/haptics';
 import { useAllWorkers, useSettings } from '@/store/selectors';
 import { buildSample, currentWeekStart, useAppStore } from '@/store/useAppStore';
-import { colors, fonts, radius, spacing } from '@/theme/tokens';
+import { colors, fonts, radius, spacing, gradients } from '@/theme/tokens';
 
 const STEPS = 3;
 
@@ -129,23 +130,25 @@ function WelcomeStep() {
 
   return (
     <View style={styles.welcome}>
-      <View style={styles.hero}>
-        <View style={[styles.miniTable, { width: metrics.tableWidth + 2 }]} pointerEvents="none">
+      <GradientFill colors={gradients.hero} style={styles.hero}>
+        <View style={{ width: metrics.tableWidth + 2 }} pointerEvents="none">
           <EventBands items={lanes.items} laneCount={lanes.laneCount} metrics={metrics} compact />
-          <DayHeaderRow dates={dates} today="" metrics={metrics} />
-          {workers.map((w) => (
-            <WorkerRow
-              key={w.id}
-              worker={w}
-              dates={dates}
-              cells={sample.cells}
-              today=""
-              timeStyle="compact"
-              metrics={metrics}
-            />
-          ))}
+          <View style={styles.miniTable}>
+            <DayHeaderRow dates={dates} today="" metrics={metrics} />
+            {workers.map((w) => (
+              <WorkerRow
+                key={w.id}
+                worker={w}
+                dates={dates}
+                cells={sample.cells}
+                today=""
+                timeStyle="compact"
+                metrics={metrics}
+              />
+            ))}
+          </View>
         </View>
-      </View>
+      </GradientFill>
       <View style={styles.copy}>
         <AppText style={styles.headline}>근무표, 폰에서{'\n'}1분이면 끝나요</AppText>
         <AppText variant="body" color={colors.text.secondary}>

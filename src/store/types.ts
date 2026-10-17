@@ -20,6 +20,8 @@ export interface Card {
   /** 퇴근 'HHmm' (범위 카드, 예: 1530~22) */
   endTime?: string;
   bg: string;
+  /** 그라데이션 끝색 (없으면 단색) */
+  bg2?: string;
   fg: string;
   order: number;
   builtIn: boolean;
@@ -33,6 +35,7 @@ export interface CellValue {
   time?: string;
   endTime?: string;
   bg: string;
+  bg2?: string;
   fg: string;
 }
 
@@ -43,6 +46,8 @@ export interface CalendarEvent {
   start: ISODate;
   end: ISODate;
   color: string;
+  /** 띠 그라데이션 끝색 (없으면 단색) */
+  color2?: string;
   icon: 'star' | 'none';
 }
 
