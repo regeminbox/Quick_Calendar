@@ -26,6 +26,8 @@ export interface AppActions {
   setCellCard: (workerId: string, date: ISODate, card: Card) => void;
   setCellTime: (workerId: string, date: ISODate, time: string, endTime?: string) => void;
   clearCell: (workerId: string, date: ISODate) => void;
+  /** 칸 값을 그대로 넣거나(복사) 비운다(undefined) — 끌어서 복사·두 번 탭 되돌리기용 */
+  setCellValue: (workerId: string, date: ISODate, value: CellValue | undefined) => void;
   upsertCard: (
     card: Omit<Card, 'order' | 'builtIn'> & Partial<Pick<Card, 'order' | 'builtIn'>>,
   ) => void;
@@ -258,6 +260,14 @@ export const useAppStore = create<AppStore>()(
         set((s) => ({
           cells: { ...s.cells, [cellKey(workerId, date)]: customTimeCell(time, endTime) },
         })),
+      setCellValue: (workerId, date, value) =>
+        set((s) => {
+          const cells = { ...s.cells };
+          const key = cellKey(workerId, date);
+          if (value) cells[key] = { ...value };
+          else delete cells[key];
+          return { cells };
+        }),
       clearCell: (workerId, date) =>
         set((s) => {
           const key = cellKey(workerId, date);

@@ -203,3 +203,18 @@ describe('다른 주 복사', () => {
     expect(useAppStore.getState().cells[cellKey(w, '2026-10-27')]).toMatchObject({ time: '1400' });
   });
 });
+
+describe('칸 값 직접 넣기', () => {
+  it('setCellValue는 값을 복사해 넣고, undefined면 비운다', () => {
+    const s = useAppStore.getState();
+    const w = s.addWorker('근무자');
+    const card = useAppStore.getState().cards.find((c) => c.id === 'status_yeoncha')!;
+    s.setCellCard(w, W1, card);
+    const value = useAppStore.getState().cells[cellKey(w, W1)];
+    s.setCellValue(w, '2026-10-26', value);
+    expect(useAppStore.getState().cells[cellKey(w, '2026-10-26')]).toEqual(value);
+    expect(useAppStore.getState().cells[cellKey(w, '2026-10-26')]).not.toBe(value);
+    s.setCellValue(w, '2026-10-26', undefined);
+    expect(useAppStore.getState().cells[cellKey(w, '2026-10-26')]).toBeUndefined();
+  });
+});

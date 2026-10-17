@@ -56,6 +56,8 @@ export interface Settings {
   timeStyle: TimeStyle;
   /** 첫 실행 안내를 마쳤는지 */
   onboarded: boolean;
+  /** 근무표 사용법 안내(한 번/두 번/꾹+끌기)를 닫았는지 */
+  gridTipDismissed?: boolean;
 }
 
 export const SCHEMA_VERSION = 1 as const;

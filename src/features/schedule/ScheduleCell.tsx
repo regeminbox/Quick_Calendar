@@ -20,6 +20,8 @@ export interface ScheduleCellProps {
   height: number;
   timeStyle: TimeStyle;
   isToday?: boolean;
+  /** 끌어서 복사 중인 원본 칸 — 인디고 테두리 */
+  highlighted?: boolean;
   onPress?: () => void;
 }
 
@@ -35,6 +37,7 @@ function ScheduleCellBase({
   height,
   timeStyle,
   isToday = false,
+  highlighted = false,
   onPress,
 }: ScheduleCellProps) {
   const bg = value?.bg ?? (isToday ? colors.brand.primaryPale : colors.surface.card);
@@ -61,6 +64,7 @@ function ScheduleCellBase({
 
   const inner = (
     <GradientFill colors={[bg, value?.bg2]} style={[styles.cell, { width, height }]}>
+      {highlighted ? <View pointerEvents="none" style={styles.highlight} /> : null}
       {label ? (
         <Animated.View style={[styles.content, popStyle]}>
           {start && end ? (
@@ -101,7 +105,8 @@ function ScheduleCellBase({
     <Pressable
       onPress={onPress}
       accessibilityRole="button"
-      accessibilityLabel={label || '비어 있음'}>
+      accessibilityLabel={label || '비어 있음'}
+      accessibilityHint="한 번 누르면 고른 카드, 두 번 누르면 직접 입력, 꾹 누른 채 끌면 복사">
       {({ pressed }) => <View style={{ opacity: pressed ? 0.6 : 1 }}>{inner}</View>}
     </Pressable>
   );
@@ -119,6 +124,16 @@ const styles = StyleSheet.create({
     paddingHorizontal: 2,
   },
   content: { alignItems: 'center', justifyContent: 'center' },
+  highlight: {
+    position: 'absolute',
+    top: 1,
+    left: 1,
+    right: 1,
+    bottom: 1,
+    borderWidth: 2,
+    borderColor: colors.brand.primary,
+    borderRadius: 6,
+  },
   label: { fontSize: 12, lineHeight: 14, textAlign: 'center' },
   sub: {
     fontFamily: fonts.medium,

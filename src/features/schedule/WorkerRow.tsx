@@ -16,6 +16,8 @@ export interface WorkerRowProps {
   timeStyle: TimeStyle;
   metrics: GridMetrics;
   onPressCell?: (workerId: string, date: ISODate) => void;
+  /** 끌어서 복사 중인 원본 칸 키 (테두리 강조) */
+  paintSourceKey?: string | null;
 }
 
 export function WorkerRow({
@@ -26,6 +28,7 @@ export function WorkerRow({
   timeStyle,
   metrics,
   onPressCell,
+  paintSourceKey = null,
 }: WorkerRowProps) {
   return (
     <View style={styles.row}>
@@ -34,17 +37,21 @@ export function WorkerRow({
           {worker.name}
         </AppText>
       </View>
-      {dates.map((date) => (
-        <ScheduleCell
-          key={date}
-          value={cells[cellKey(worker.id, date)]}
-          width={metrics.dayColWidth}
-          height={metrics.rowHeight}
-          timeStyle={timeStyle}
-          isToday={date === today}
-          onPress={onPressCell ? () => onPressCell(worker.id, date) : undefined}
-        />
-      ))}
+      {dates.map((date) => {
+        const key = cellKey(worker.id, date);
+        return (
+          <ScheduleCell
+            key={date}
+            value={cells[key]}
+            width={metrics.dayColWidth}
+            height={metrics.rowHeight}
+            timeStyle={timeStyle}
+            isToday={date === today}
+            highlighted={paintSourceKey === key}
+            onPress={onPressCell ? () => onPressCell(worker.id, date) : undefined}
+          />
+        );
+      })}
     </View>
   );
 }
