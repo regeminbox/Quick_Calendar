@@ -68,6 +68,8 @@ export const gradients = {
   selection: ['#E6E5FF', '#DDEBFF'],
   /** 고래잇 행사 띠 기본 — 노랑 → 살구 */
   event: ['#FFE38A', '#FFD2A8'],
+  /** 캘린더 진열대 선반 — 라벤더 → 하늘 (헤더보다 조금 진하게) */
+  shelf: ['#DDD9F5', '#CFE1F8'],
 } as const satisfies Record<string, readonly [string, string]>;
 
 export type CardPaletteKey = (typeof cardPalette)[number]['key'];

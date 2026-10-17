@@ -2,7 +2,7 @@ import { StyleSheet, TextInput, View, type TextInputProps } from 'react-native';
 
 import { colors, fonts, radius } from '@/theme/tokens';
 
-import { AppText } from './AppText';
+import { AppText, MAX_FONT_SCALE } from './AppText';
 
 export interface TextFieldProps extends TextInputProps {
   label?: string;
@@ -20,6 +20,7 @@ export function TextField({ label, error, hint, style, ...rest }: TextFieldProps
       ) : null}
       <TextInput
         placeholderTextColor={colors.text.tertiary}
+        maxFontSizeMultiplier={MAX_FONT_SCALE}
         {...rest}
         style={[styles.input, !!error && styles.inputError, style]}
       />
