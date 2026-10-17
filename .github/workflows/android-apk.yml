@@ -11,6 +11,9 @@ jobs:
   apk:
     runs-on: ubuntu-latest
     timeout-minutes: 60
+    env:
+      # 시크릿 이름을 EXPO_TOKEN 으로 권장하지만, SECRET / TOKEN / EXPO 로 등록해도 받아준다
+      EXPO_TOKEN: ${{ secrets.EXPO_TOKEN || secrets.SECRET || secrets.TOKEN || secrets.EXPO }}
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
@@ -23,10 +26,17 @@ jobs:
           npm run lint
           npm run typecheck
           npm test -- --ci
+      - name: Expo 토큰 확인
+        run: |
+          if [ -z "$EXPO_TOKEN" ]; then
+            echo "::error::Expo 토큰 시크릿을 찾지 못했어요. 저장소 Settings → Secrets and variables → Actions 에서 이름을 EXPO_TOKEN 으로 등록해 주세요 (expo.dev → Access tokens 에서 발급)."
+            exit 1
+          fi
+          echo "Expo 토큰 확인됨"
       - uses: expo/expo-github-action@v8
         with:
           eas-version: latest
-          token: ${{ secrets.EXPO_TOKEN }}
+          token: ${{ env.EXPO_TOKEN }}
       - name: EAS 프로젝트 연결 (app.json에 projectId가 없을 때만)
         run: |
           if ! node -e "const a=require('./app.json');process.exit(a.expo?.extra?.eas?.projectId?0:1)"; then

@@ -26,7 +26,7 @@
 
 ### A. 가장 쉬운 길 — GitHub에서 버튼 한 번으로 APK 받기 (Android)
 
-1. **한 번만 준비**: [expo.dev](https://expo.dev) 가입 → 프로필 → *Access tokens* → 토큰 만들기 → 이 저장소 *Settings → Secrets and variables → Actions → New repository secret* 에 이름 `EXPO_TOKEN`으로 저장.
+1. **한 번만 준비**: [expo.dev](https://expo.dev) 가입 → 프로필 → *Access tokens* → 토큰 만들기 → 이 저장소 *Settings → Secrets and variables → Actions → New repository secret* 에 **Name 칸에 정확히 `EXPO_TOKEN`**, Secret 칸에 토큰을 넣고 저장. (이름을 `SECRET`, `TOKEN`, `EXPO`로 넣어도 받아줍니다.)
 2. 저장소 **Actions** 탭 → **Android APK** → *Run workflow*.
 3. 10~20분 뒤 끝나면 그 실행 페이지 아래 **Artifacts → quickcalendar-apk** 를 내려받아 폰으로 보내고(카톡 나에게 보내기 등) 열면 설치됩니다. 처음엔 "출처를 알 수 없는 앱 허용"을 켜 달라고 합니다. Summary에 EAS 다운로드 링크도 함께 적힙니다.
 
